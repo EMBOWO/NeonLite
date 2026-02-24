@@ -14,7 +14,8 @@ using Steamworks;
 
 namespace NeonLite.Modules.Misc
 {
-    internal class Cheaters : IModule
+    [Module]
+    internal static class Cheaters
     {
 #pragma warning disable CS0414
         const bool priority = true;
@@ -107,13 +108,13 @@ namespace NeonLite.Modules.Misc
         static bool? friendOnly;
         static int global;
 
-        private static void PreGetScoreDataAtGlobalRank(ref int globalRank, ref bool friendsOnly)
+        private static void PreGetScoreDataAtGlobalRank(int globalRank, bool friendsOnly)
         {
             friendOnly = friendsOnly;
             global = globalRank;
         }
 
-        private static void PostGetDownloadedLeaderboardEntry(ref SteamLeaderboardEntries_t hSteamLeaderboardEntries, ref int index, LeaderboardEntry_t pLeaderboardEntry, ref int[] pDetails, ref int cDetailsMax, ref bool __result)
+        private static void PostGetDownloadedLeaderboardEntry(ref LeaderboardEntry_t pLeaderboardEntry)
         {
             if (bannedIDs == null)
                 return;

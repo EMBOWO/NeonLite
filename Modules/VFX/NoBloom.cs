@@ -2,7 +2,8 @@
 
 namespace NeonLite.Modules.VFX
 {
-    internal class NoBloom : IModule
+    [Module]
+    internal static class NoBloom
     {
 #pragma warning disable CS0414
         const bool priority = true;

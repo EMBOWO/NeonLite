@@ -8,7 +8,8 @@ using UnityEngine.UI;
 
 namespace NeonLite.Modules.UI
 {
-    internal class CustomCursor : IModule
+    [Module(-13)]
+    internal static class CustomCursor
     {
 #pragma warning disable CS0414
         const bool priority = false;

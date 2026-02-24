@@ -3,7 +3,8 @@ using System.Reflection;
 
 namespace NeonLite.Modules.Optimization
 {
-    internal class FalseLoading : IModule
+    [Module]
+    internal static class FalseLoading
     {
 #pragma warning disable CS0414
         const bool priority = true;

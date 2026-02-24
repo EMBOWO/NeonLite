@@ -3,7 +3,8 @@ using System.Reflection;
 
 namespace NeonLite.Modules.UI
 {
-    internal class ExtraSlider : IModule
+    [Module]
+    internal static class ExtraSlider
     {
 #pragma warning disable CS0414
         const bool priority = true;

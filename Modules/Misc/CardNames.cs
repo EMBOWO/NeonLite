@@ -7,7 +7,8 @@ namespace NeonLite.Modules.Misc
 {
     // ORIGINAL CODE BY PUPPYPOWERTOOLS AUTHOR HECATE/PANDORAS FOX
     // refactored though
-    internal class CardNames : IModule
+    [Module]
+    internal static class CardNames
     {
 #pragma warning disable CS0414
         const bool priority = true;
@@ -56,7 +57,8 @@ namespace NeonLite.Modules.Misc
             active = activate;
         }
 
-        internal class AllAbilities : IModule
+        [Module]
+        internal class AllAbilities
         {
             const bool priority = true;
             internal static bool active = false;

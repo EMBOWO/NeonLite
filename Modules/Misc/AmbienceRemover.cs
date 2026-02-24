@@ -2,7 +2,8 @@
 
 namespace NeonLite.Modules.Misc
 {
-    internal class AmbienceRemover : IModule
+    [Module]
+    internal static class AmbienceRemover
     {
 #pragma warning disable CS0414
         const bool priority = true;

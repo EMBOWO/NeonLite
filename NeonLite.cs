@@ -34,6 +34,9 @@ namespace NeonLite
         // An automatically populated list of all modules in NeonLite.
         internal static List<Type> modules = [];
 
+        internal readonly static HashSet<MelonAssembly> expected = [];
+        internal readonly static HashSet<MelonAssembly> loaded = [];
+
         internal static AssetBundleCreateRequest bundleLoading;
         internal static AssetBundle bundle;
         internal static event Action<AssetBundle> OnBundleLoad;
@@ -51,6 +54,8 @@ namespace NeonLite
 
         public override void OnInitializeMelon()
         {
+            GCManager.DisableGC(GCManager.GCType.Initialization);
+
             VersionText.ver = Info.Version;
             Logger.Msg($"Version: {Info.Version}");
             UnityEngine.Debug.Log($"NeonLite Version: {Info.Version}");
@@ -64,8 +69,15 @@ namespace NeonLite
             Harmony = HarmonyInstance;
 
             LoadModules(MelonAssembly);
+
+            foreach (var m in RegisteredMelons)
+            {
+                if (Helpers.HasModulesInAssembly(m.MelonAssembly.Assembly))
+                    expected.Add(m.MelonAssembly);
+            }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void ActivatePriority()
         {
             if (activateEarly)
@@ -73,7 +85,7 @@ namespace NeonLite
 
             Helpers.StartProfiling("NeonLite Activate-priority Pass");
 
-            foreach (var module in modules.Where(static t => (bool)Helpers.Field(t, "priority").GetValue(null) && (bool)Helpers.Field(t, "active").GetValue(null)))
+            foreach (var module in modules.Where(static t => Helpers.GetModulePrio(t) && (bool)Helpers.Field(t, "active").GetValue(null)))
             {
                 Logger.DebugMsg($"{module} Activate");
 
@@ -85,7 +97,7 @@ namespace NeonLite
                 }
                 catch (Exception e)
                 {
-                    Logger.Error($"error in {module} Activate:");
+                    Logger.Error($"Error in {module} Activate:");
                     Logger.Error(e);
                     continue;
                 }
@@ -117,14 +129,14 @@ namespace NeonLite
         {
             ActivatePriority();
             LoadAssetBundle();
-            Singleton<Game>.Instance.OnInitializationComplete += OnInitComplete;
+            Game.OnInitializationComplete += OnInitComplete;
             Settings.Localize();
         }
 
         void OnInitComplete()
         {
             // mainmenu is now ready!
-            Singleton<Game>.Instance.OnInitializationComplete -= OnInitComplete;
+            Game.OnInitializationComplete -= OnInitComplete;
 
             holder = new GameObject("NeonLite");
             UnityEngine.Object.DontDestroyOnLoad(holder);
@@ -138,7 +150,7 @@ namespace NeonLite
 
             // perform the later inits
             Helpers.StartProfiling("NeonLite Activate-nonpriority Pass");
-            foreach (var module in modules.Where(static t => !(bool)Helpers.Field(t, "priority").GetValue(null) && (bool)Helpers.Field(t, "active").GetValue(null)))
+            foreach (var module in modules.Where(static t => !Helpers.GetModulePrio(t) && (bool)Helpers.Field(t, "active").GetValue(null)))
             {
                 Logger.DebugMsg($"{module} Activate");
                 Helpers.StartProfiling($"{module}");
@@ -149,7 +161,7 @@ namespace NeonLite
                 }
                 catch (Exception e)
                 {
-                    Logger.Error($"error in {module} Activate:");
+                    Logger.Error($"Error in {module} Activate:");
                     Logger.Error(e);
                     continue;
                 }
@@ -161,20 +173,40 @@ namespace NeonLite
             Helpers.EndProfiling();
 
             activateLate = true;
-            Patching.patchRunner.Join();
-            Patching.RunPatches(false);
+            Patching.RunPatches(true);
 
             Settings.Migrate();
 
             // force it to fetch even if it's off
             CommunityMedals.OnLevelLoad(null);
+
+            GCManager.EnableGC(GCManager.GCType.Initialization);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void LoadModules(MelonAssembly assembly)
         {
-            var addedModules = assembly.Assembly.GetTypes().Where(static t => typeof(IModule).IsAssignableFrom(t) && t != typeof(IModule) && !modules.Contains(t)).ToList();
+            var addedModulesL = Helpers.GetModulesInAssembly(assembly.Assembly, true);
+            if (addedModulesL.Count == 0)
+                return; // do not bother
 
+            // sanity check
+            List<Type> errors = [];
+
+            foreach (var t in addedModulesL)
+            {
+                var p = Helpers.Field(t, "priority");
+                var a = Helpers.Field(t, "active");
+
+                if (p == null || a == null)
+                {
+                    Logger.Error($"Module {t} from {assembly.Assembly.GetName().Name} is incorrectly configured!!");
+                    errors.Add(t);
+                }
+            }
+
+            var addedModules = addedModulesL.Except(errors).ToArray();
+
+            Logger.DebugMsg($"DoSetup {assembly.Assembly.GetName().Name}");
             {
                 int iS = 0;
                 int completedS = 0;
@@ -212,11 +244,13 @@ namespace NeonLite
             int i = 0;
             int completed = 0;
 
+
+            Logger.DebugMsg($"DoEarly {assembly.Assembly.GetName().Name}");
             if (activateEarly)
             {
                 Helpers.StartProfiling($"NeonLite Activate-priority Pass - {assembly.Assembly.GetName().Name}");
 
-                foreach (var module in addedModules.Where(static t => (bool)Helpers.Field(t, "priority").GetValue(null) && (bool)Helpers.Field(t, "active").GetValue(null)))
+                foreach (var module in addedModules.Where(static t => Helpers.GetModulePrio(t) && (bool)Helpers.Field(t, "active").GetValue(null)))
                 {
                     Logger.DebugMsg($"{module} Activate");
                     Helpers.StartProfiling($"{module}");
@@ -242,11 +276,12 @@ namespace NeonLite
                 Helpers.EndProfiling();
             }
 
+            Logger.DebugMsg($"DoLate {assembly.Assembly.GetName().Name}");
             if (activateLate)
             {
                 Helpers.StartProfiling($"NeonLite Activate-nonpriority Pass - {assembly.Assembly.GetName().Name}");
 
-                foreach (var module in addedModules.Where(static t => !(bool)Helpers.Field(t, "priority").GetValue(null) && (bool)Helpers.Field(t, "active").GetValue(null)))
+                foreach (var module in addedModules.Where(static t => !Helpers.GetModulePrio(t) && (bool)Helpers.Field(t, "active").GetValue(null)))
                 {
                     Logger.DebugMsg($"{module} Activate");
                     Helpers.StartProfiling($"{module}");
@@ -272,11 +307,17 @@ namespace NeonLite
                 Helpers.EndProfiling();
             }
 
-            if (activateEarly)
-                Patching.RunPatches(false);
-
+            loaded.Add(assembly);
             modules.AddRange(addedModules);
             LoadManager.AddModules(addedModules);
+            Verifier.AddModules(addedModules);
+
+            Logger.DebugMsg($"Check {assembly.Assembly.GetName().Name}");
+
+            if (activateEarly)
+                Patching.RunPatches(true);
+            else if (loaded.SetEquals(expected))
+                ActivatePriority();
         }
     }
 }

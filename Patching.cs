@@ -1,5 +1,6 @@
 using HarmonyLib;
 using MelonLoader;
+using NeonLite.Modules.Optimization;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine.Scripting;
 
 namespace NeonLite
 {
@@ -20,24 +22,26 @@ namespace NeonLite
             Postfix,
             Transpiler,
             Finalizer,
-            ILManip
+            ILManip,
+            Count
         }
-        struct PatchInfo
+
+        class PatchInfo
         {
             public HarmonyMethod patch;
-            public PatchTarget target;
-            public bool registered;
+            public int target;
+            public bool registered = false;
 
-            public override readonly bool Equals(object obj) => obj is PatchInfo info && patch?.method == info.patch?.method;
+            public override bool Equals(object obj) => obj is PatchInfo info && patch?.method == info.patch?.method;
 
             // compiler would not shut up
-            public override readonly int GetHashCode() => -1372007919 + patch?.method.GetHashCode() ?? 0;
+            public override int GetHashCode() => -1372007919 + patch?.method.GetHashCode() ?? 0;
 
-            public static bool operator ==(PatchInfo obj1, PatchInfo obj2) => obj1.patch?.method == obj2.patch?.method;
-            public static bool operator !=(PatchInfo obj1, PatchInfo obj2) => obj1.patch?.method != obj2.patch?.method;
+            public static bool operator ==(PatchInfo obj1, PatchInfo obj2) => obj1?.patch?.method == obj2?.patch?.method;
+            public static bool operator !=(PatchInfo obj1, PatchInfo obj2) => obj1?.patch?.method != obj2?.patch?.method;
         }
 
-        static readonly Dictionary<MethodInfo, List<PatchInfo>> patches = [];
+        static readonly Dictionary<MethodInfo, LinkedList<PatchInfo>> patches = new(256); // this should be enough
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -57,8 +61,14 @@ namespace NeonLite
         public static bool AddPatch(MethodInfo method, Delegate patch, PatchTarget target, bool instant = false) => AddPatch(method, Helpers.HM(patch), target, instant);
         public static bool AddPatch(MethodInfo method, HarmonyMethod patch, PatchTarget target, bool instant = false)
         {
+            if (method == null)
+            {
+                NeonLite.Logger.Error($"Tried to add patch {patch.method.Name} from module {patch.method.DeclaringType}, but target method is null!");
+                return false;
+            }
+
             if (!patches.ContainsKey(method))
-                patches[method] = [];
+                patches[method] = new();
             var patchlist = patches[method];
 
             if (patchlist.Any(x => x.patch.method == patch.method))
@@ -67,10 +77,8 @@ namespace NeonLite
             var info = new PatchInfo
             {
                 patch = patch,
-                target = target,
-                registered = instant
+                target = (int)target,
             };
-            patchlist.Add(info);
 
             if (instant)
             {
@@ -95,8 +103,27 @@ namespace NeonLite
                         break;
                 }
 
-                processor.Patch();
+                try
+                {
+                    processor.Patch();
+                }
+                catch (Exception e)
+                {
+                    NeonLite.Logger.Warning($"Error performing patch for {method.Name} from {patch.method.Name} from module {patch.method.DeclaringType}:");
+                    NeonLite.Logger.Error(e);
+                }
+
                 Helpers.EndProfiling();
+
+                info.registered = true;
+
+                patchRunner?.Join();
+                patchlist.AddLast(info);
+            }
+            else
+            {
+                patchRunner?.Join();
+                patchlist.AddFirst(info);
             }
 
             return true;
@@ -114,6 +141,8 @@ namespace NeonLite
             var p = patchlist.FirstOrDefault(x => x.patch.method == patch);
             if (p != default)
             {
+                patchRunner?.Join();
+
                 patchlist.Remove(p);
                 if (p.registered)
                     NeonLite.Harmony.Unpatch(method, patch);
@@ -125,79 +154,56 @@ namespace NeonLite
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void RunPatches() => RunPatches(false);
+        public static void RunPatches() => RunPatches(true);
 
         internal static Thread patchRunner;
         internal static bool firstPass = false;
-        internal static void RunPatches(bool parallel)
+
+        public static void RunPatches(bool parallel)
         {
-            Helpers.StartProfiling($"Run Patches ({parallel})");
+            // if, somehow, something else is wanting to patch
+            // tell it to wait please
+            patchRunner?.Join();
 
-            ConcurrentBag<PatchJob> bag = null;
-            if (parallel)
-                bag = [];
+            NeonLite.Logger.DebugMsg("RunPatches");
 
-            var mCount = 0;
-            var pCount = 0;
+            GCManager.DisableGC(GCManager.GCType.Patching);
+            Helpers.StartProfiling($"Setup Patches ({parallel})");
 
-            foreach (var kv in patches)
+            List<PatchJob> bag = new(patches.Count(static x => x.Value.Any(static y => !y.registered)));
+
+            if (bag.Capacity != 0)
             {
-                if (kv.Value.All(static x => x.registered))
-                    continue;
-
-                ++mCount;
-
-                if (!parallel)
-                    Helpers.StartProfiling($"{kv.Key.DeclaringType.FullName}.{kv.Key.Name}");
-
-                var curJob = new PatchJob()
+                foreach (var kv in patches.Where(static x => x.Value.Any(static y => !y.registered)))
                 {
-#if DEBUG
-                    methodName = $"{kv.Key.DeclaringType.FullName}.{kv.Key.Name}",
-#endif
-                    processor = NeonLite.Harmony.CreateProcessor(kv.Key),
-                    patchInfos = kv.Value.Where(static x => !x.registered).ToArray()
-                };
-                if (parallel)
+
+                    var curJob = new PatchJob()
+                    {
+                        method = kv.Key,
+                        processor = NeonLite.Harmony.CreateProcessor(kv.Key),
+                        patchInfos = [.. kv.Value.TakeWhile(static x => !x.registered)]
+                    };
+
                     bag.Add(curJob);
-                else
-                {
-                    pCount += curJob.patchInfos.Length;
-                    Helpers.StartProfiling($"Instant-patch all");
-                    curJob.Execute();
-                    Helpers.EndProfiling();
                 }
 
-                for (int i = 0; i < kv.Value.Count; ++i)
-                {
-                    var patch = kv.Value[i];
-                    patch.registered = true;
-                    kv.Value[i] = patch;
-                }
-                if (!parallel)
-                    Helpers.EndProfiling();
-            }
-
-            if (parallel)
-            {
                 patchRunner = new Thread(() =>
                 {
-                    NeonLite.Logger.Msg("Starting parallel patching...");
+                    NeonLite.Logger.DebugMsg("Starting parallel patching...");
                     var sw = new Stopwatch();
-                    var option = new ParallelOptions
-                    {
-                        MaxDegreeOfParallelism = 4 // this is fine  
-                    };
                     sw.Start();
-                    Parallel.ForEach(bag, option, static x => x.Execute());
-                    NeonLite.Logger.Msg($"Ran {bag.SelectMany(x => x.patchInfos).Count()} patches for {bag.Count} functions in parallel ({sw.ElapsedMilliseconds}ms).");
-                });
-                patchRunner.Start();
-            }
-            else if (pCount > 0)
-                NeonLite.Logger.Msg($"Ran {pCount} patches for {mCount} functions.");
+                    Parallel.ForEach(bag, static x => x.Execute());
 
-            firstPass = true;
+                    GCManager.EnableGC(GCManager.GCType.Patching);
+                    NeonLite.Logger.Msg($"Ran {bag.Sum(x => x.total)} patches for {bag.Count} functions in parallel ({bag.Sum(x => x.errors)} errors, {sw.ElapsedMilliseconds}ms).");
+                });
+
+                patchRunner.Start();
+                firstPass = true;
+
+                if (!parallel)
+                    patchRunner.Join();
+            }
             Helpers.EndProfiling();
         }
 
@@ -225,26 +231,51 @@ namespace NeonLite
             }
         }
 
-        struct PatchJob
+        class PatchJob
         {
             internal static readonly object locker = new();
-#if DEBUG
-            public string methodName;
-#endif
+            public MethodInfo method;
             public PatchProcessor processor;
             public PatchInfo[] patchInfos;
 
+            public int errors = 0;
+            public int total = 0;
+
             public void Execute()
             {
-                var current = new Dictionary<PatchTarget, bool>() {
-                    { PatchTarget.Prefix, false },
-                    { PatchTarget.Postfix, false },
-                    { PatchTarget.Transpiler, false },
-                    { PatchTarget.Finalizer, false },
-                    { PatchTarget.ILManip, false }
-                };
+                var current = new HarmonyMethod[(int)PatchTarget.Count];
+                Array.Reverse(patchInfos);
 
-                HarmonyMethod hmNull = null;
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                void Patch()
+                {
+                    try
+                    {
+                        processor.AddPrefix(current[(int)PatchTarget.Prefix]);
+                        processor.AddPostfix(current[(int)PatchTarget.Postfix]);
+                        processor.AddTranspiler(current[(int)PatchTarget.Transpiler]);
+                        processor.AddFinalizer(current[(int)PatchTarget.Finalizer]);
+                        processor.AddILManipulator(current[(int)PatchTarget.ILManip]);
+
+                        processor.Patch();
+                    }
+                    catch (Exception e)
+                    {
+                        errors++;
+
+                        lock (locker)
+                        {
+                            NeonLite.Logger.Warning($"Error performing patches for {method.DeclaringType.FullName}.{method.Name}:");
+                            NeonLite.Logger.Error(e);
+                            NeonLite.Logger.Warning($"Error came from one of:");
+
+                            foreach (var p in current.Where(x => x != null))
+                            {
+                                NeonLite.Logger.Warning($"- {p.method.Name} from module {p.method.DeclaringType}");
+                            }
+                        }
+                    }
+                }
 
                 foreach (var patch in patchInfos)
                 {
@@ -252,51 +283,29 @@ namespace NeonLite
                     if (NeonLite.DEBUG)
                     {
                         lock (locker)
-                            NeonLite.Logger.Msg($"{methodName}:{patch.patch.method.Name} on #{Thread.CurrentThread.ManagedThreadId}");
+                        {
+                            try
+                            {
+                                NeonLite.Logger.Msg($"patch {method.DeclaringType.FullName}.{method.Name}:{patch.patch.method.Name} on #{Thread.CurrentThread.ManagedThreadId}");
+                            }
+                            catch (Exception) { }
+                        }
                     }
 #endif
 
-                    if (current[patch.target])
+                    if (current[patch.target] != null)
                     {
-                        try
-                        {
-                            processor.Patch();
-                        }
-                        catch (Exception e)
-                        {
-                            NeonLite.Logger.Warning($"Error performing patch from {patch.patch.method.Name}:");
-                            NeonLite.Logger.Error(e);
-                        }
-                        processor.AddPrefix(hmNull);
-                        processor.AddPostfix(hmNull);
-                        processor.AddTranspiler(hmNull);
-                        processor.AddFinalizer(hmNull);
-                        processor.AddILManipulator(hmNull);
+                        Patch();
+                        Array.Clear(current, 0, (int)PatchTarget.Count);
                     }
 
-                    switch (patch.target)
-                    {
-                        case PatchTarget.Prefix:
-                            processor.AddPrefix(patch.patch);
-                            break;
-                        case PatchTarget.Postfix:
-                            processor.AddPostfix(patch.patch);
-                            break;
-                        case PatchTarget.Transpiler:
-                            processor.AddTranspiler(patch.patch);
-                            break;
-                        case PatchTarget.Finalizer:
-                            processor.AddFinalizer(patch.patch);
-                            break;
-                        case PatchTarget.ILManip:
-                            processor.AddILManipulator(patch.patch);
-                            break;
-                    }
-                    current[patch.target] = true;
+                    current[patch.target] = patch.patch;
+                    patch.registered = true;
+                    total++;
                 }
 
-                if (current.Any(static kv => kv.Value))
-                    processor.Patch();
+                if (current.Any(static x => x != null))
+                    Patch();
             }
         }
 

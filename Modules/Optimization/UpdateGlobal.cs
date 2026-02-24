@@ -5,7 +5,8 @@ using System.Reflection;
 
 namespace NeonLite.Modules.Optimization
 {
-    internal class UpdateGlobal : IModule
+    [Module]
+    internal static class UpdateGlobal
     {
 #pragma warning disable CS0414
         const bool priority = false;

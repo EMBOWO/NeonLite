@@ -3,9 +3,10 @@ using System.Reflection;
 
 #pragma warning disable CS0414
 
-namespace NeonLite.Modules.Misc.VFX
+namespace NeonLite.Modules.VFX
 {
-    internal class NoBoof : IModule
+    [Module]
+    internal static class NoBoof
     {
 #pragma warning disable CS0414
         const bool priority = true;

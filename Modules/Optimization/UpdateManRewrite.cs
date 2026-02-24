@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using NeonLite.Modules.UI;
 using System.Collections.Generic;
 using UnityEngine;
 using FB = IManagedFixedUpdateBehaviour;
@@ -9,8 +10,12 @@ namespace NeonLite.Modules.Optimization
 {
     // due to patching basically the entire class this isn't a module and instead is a regular patch class
     [HarmonyPatch(typeof(UpdateManager))]
-    internal class UpdateManRewrite
+    internal static class UpdateManRewrite
     {
+        static UB[] updateArr;
+        static LB[] lateUpdateArr;
+        static FB[] fixedUpdateArr;
+
         [HarmonyPostfix]
         [HarmonyPatch(MethodType.Constructor)]
         static void InitLists(List<UB> ____updateBehaviours, List<LB> ____lateUpdateBehaviours, List<FB> ____fixedUpdateBehaviours)
@@ -19,6 +24,13 @@ namespace NeonLite.Modules.Optimization
             ____updateBehaviours.Capacity = 2048;
             ____lateUpdateBehaviours.Capacity = 2048;
             ____fixedUpdateBehaviours.Capacity = 2048;
+
+            var items = Helpers.Field(typeof(List<UB>), "_items");
+            updateArr = (UB[])items.GetValue(____updateBehaviours);
+            items = Helpers.Field(typeof(List<LB>), "_items");
+            lateUpdateArr = (LB[])items.GetValue(____lateUpdateBehaviours);
+            items = Helpers.Field(typeof(List<FB>), "_items");
+            fixedUpdateArr = (FB[])items.GetValue(____fixedUpdateBehaviours);
         }
 
         [HarmonyPrefix]
@@ -123,8 +135,9 @@ namespace NeonLite.Modules.Optimization
             ____updateBehavioursToRemoveHashSet.Clear();
             float deltaTime = Time.deltaTime;
 
-            foreach (var behavior in ____updateBehaviours)
-                behavior.OnUpdate(deltaTime);
+            int len = ____updateBehaviours.Count;
+            for (int i = 0; i < len; ++i)
+                updateArr[i].OnUpdate(deltaTime);
 
             ____updateActive = false;
 
@@ -151,8 +164,9 @@ namespace NeonLite.Modules.Optimization
             }
             ____lateUpdateBehavioursToRemoveHashSet.Clear();
 
-            foreach (var behavior in ____lateUpdateBehaviours)
-                behavior.OnLateUpdate();
+            int len = ____lateUpdateBehaviours.Count;
+            for (int i = 0; i < len; ++i)
+                lateUpdateArr[i].OnLateUpdate();
 
             ____lateUpdateActive = false;
 
@@ -180,8 +194,9 @@ namespace NeonLite.Modules.Optimization
             ____fixedUpdateBehavioursToRemoveHashSet.Clear();
             float deltaTime = Time.fixedDeltaTime;
 
-            foreach (var behavior in ____fixedUpdateBehaviours)
-                behavior.OnFixedUpdate(deltaTime);
+            int len = ____fixedUpdateBehaviours.Count;
+            for (int i = 0; i < len; ++i)
+                fixedUpdateArr[i].OnFixedUpdate(deltaTime);
 
             ____fixedUpdateActive = false;
 

@@ -7,7 +7,8 @@ using UnityEngine;
 
 namespace NeonLite.Modules.UI
 {
-    internal class DNFTime : IModule
+    [Module(10)]
+    internal static class DNFTime
     {
 #pragma warning disable CS0414
         const bool priority = true;
@@ -72,7 +73,7 @@ namespace NeonLite.Modules.UI
         static void PostStart(LevelGate __instance)
         {
             // dnfs were actually using the entire rigidbody which is a bit taller and a tiny bit wider
-            // this made dnfs fake, **ESPECIALLY** vertical DNFs 
+            // this made dnfs fake, **ESPECIALLY** vertical DNFs
             // shoutout mario/snowy/wolfu/floyd for pointing it out and letting me test
             // according to unity docs this doesn't even seem like it should happen,
             // so we have to add a rigidbody to redirect it

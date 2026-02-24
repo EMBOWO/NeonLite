@@ -11,7 +11,8 @@ using UnityEngine.UI;
 
 namespace NeonLite.Modules.Optimization
 {
-    internal class LockMouse : IModule
+    [Module]
+    internal static class LockMouse
     {
         const bool priority = true;
         static bool active = true;
@@ -43,7 +44,8 @@ namespace NeonLite.Modules.Optimization
         static bool IgnoreCursorLock() => settingState;
     }
 
-    internal class DisableTextNav : IModule
+    [Module]
+    internal static class DisableTextNav
     {
         const bool priority = true;
         const bool active = true;
@@ -64,7 +66,8 @@ namespace NeonLite.Modules.Optimization
         }
     }
 
-    internal class StopNav : IModule
+    [Module]
+    internal static class StopNav
     {
         const bool priority = false;
         static bool active = true;
@@ -88,11 +91,11 @@ namespace NeonLite.Modules.Optimization
             }
             else
                 UnityEngine.Resources.FindObjectsOfTypeAll<InputActionAsset>().Do(HijackBindings);
-            
+
             //Patching.TogglePatch(activate, typeof(InputActionAsset), "ReResolveIfNecessary", HijackBindings, Patching.PatchTarget.Prefix);
             active = activate;
         }
-         
+
         static void HijackBindings(InputActionAsset __instance)
         {
             // for some reason there are 2 NWControls ????

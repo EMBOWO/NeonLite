@@ -6,7 +6,8 @@ using System.Reflection.Emit;
 namespace NeonLite.Modules.VFX
 {
     // ORIGINAL CODE BY PUPPYPOWERTOOLS AUTHOR HECATE/PANDORAS FOX
-    internal class NoStompFlash : IModule
+    [Module]
+    internal static class NoStompFlash
     {
 #pragma warning disable CS0414
         const bool priority = true;
@@ -39,7 +40,8 @@ namespace NeonLite.Modules.VFX
         }
     }
 
-    internal class NoStompSplash : IModule
+    [Module]
+    internal static class NoStompSplash
     {
 #pragma warning disable CS0414
         const bool priority = true;

@@ -9,7 +9,8 @@ using UnityEngine;
 
 namespace NeonLite.Modules.Optimization
 {
-    internal class CleanTexts : IModule
+    [Module]
+    internal static class CleanTexts
     {
         const bool priority = true;
         const bool active = true;
@@ -29,11 +30,12 @@ namespace NeonLite.Modules.Optimization
         }
     }
 
-    internal class BetterProgressBar : IModule
+    [Module]
+    internal static class BetterProgressBar
     {
         const bool priority = true;
         const bool active = true;
-        
+
         static void Activate(bool _)
         {
             Patching.AddPatch(typeof(ProgressBar), "OnEnable", NoEnable, Patching.PatchTarget.Prefix);
@@ -47,12 +49,13 @@ namespace NeonLite.Modules.Optimization
             if (!____isVisible)
                 if (visible)
                     UpdateManager.SubscribeToUpdate(__instance);
-            else if (!visible)
+                else if (!visible)
                     UpdateManager.UnsubscribeFromUpdate(__instance);
         }
     }
 
-    internal class BetterFog : IModule
+    [Module]
+    internal static class BetterFog
     {
         const bool priority = true;
         const bool active = true;
@@ -85,7 +88,8 @@ namespace NeonLite.Modules.Optimization
         }
     }
 
-    internal class PreloadObjects : IModule
+    [Module]
+    internal static class PreloadObjects
     {
         const bool priority = true;
         const bool active = true;
@@ -112,7 +116,8 @@ namespace NeonLite.Modules.Optimization
         }
     }
 
-    internal class EarlyLBUpload : IModule
+    [Module]
+    internal static class EarlyLBUpload
     {
         const bool priority = true;
         const bool active = true;

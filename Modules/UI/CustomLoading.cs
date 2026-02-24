@@ -7,7 +7,8 @@ using UnityEngine.UI;
 
 namespace NeonLite.Modules.UI
 {
-    internal class CustomLoading : IModule
+    [Module(-12)]
+    internal static class CustomLoading
     {
 #pragma warning disable CS0414
         const bool priority = true;

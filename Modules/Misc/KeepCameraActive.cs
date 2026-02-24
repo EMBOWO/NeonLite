@@ -6,7 +6,8 @@ using UnityEngine;
 
 namespace NeonLite.Modules.Misc
 {
-    internal class KeepCameraActive : IModule
+    [Module(100)]
+    internal static class KeepCameraActive
     {
 #pragma warning disable CS0414
         const bool priority = true;

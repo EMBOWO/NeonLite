@@ -6,7 +6,8 @@ using UnityEngine;
 namespace NeonLite.Modules.UI
 {
     // ORIGINAL CODE BY MADMON FOR CUSTOMCROSSHAIRCOLORS
-    internal class CrosshairColors : IModule
+    [Module]
+    internal static class CrosshairColors
     {
 #pragma warning disable CS0414
         const bool priority = true;

@@ -31,7 +31,8 @@ namespace NeonLite.Modules.Optimization
     }
 
     [HarmonyPatch]
-    internal class FastStart : IModule
+    [Module(100)]
+    internal static class FastStart
     {
 #pragma warning disable CS0414
         const bool priority = true;
@@ -43,7 +44,6 @@ namespace NeonLite.Modules.Optimization
         internal static AsyncOperation audioPreload;
         internal static AsyncOperation menuPreload;
         internal static AsyncOperation enemyPreload;
-        static bool enemiesLoaded = false;
 
         static readonly Stopwatch stopwatch = new();
 
@@ -67,6 +67,8 @@ namespace NeonLite.Modules.Optimization
 
         static void Preload()
         {
+            GCManager.DisableGC(GCManager.GCType.FastStart);
+
             NeonLite.Logger.Msg("Started scene preload, please wait...!");
             stopwatch.Start();
 
@@ -97,7 +99,6 @@ namespace NeonLite.Modules.Optimization
         {
             SceneManager.activeSceneChanged -= OnFirstLoad;
 
-            NeonLite.ActivatePriority();
             MelonCoroutines.Start(LoadScenes());
         }
 
@@ -153,14 +154,15 @@ namespace NeonLite.Modules.Optimization
         }
         static void PreloadDone()
         {
+            GCManager.EnableGC(GCManager.GCType.FastStart);
             stopwatch.Stop();
             NeonLite.Logger.Msg($"Preload done in {stopwatch.ElapsedMilliseconds}ms.");
             //SceneManager.UnloadSceneAsync("Audio");
         }
 
         // AUDIO OPTIMIZATIONS
-        static MethodInfo itemInit = Helpers.Method(typeof(AudioItem), "_Initialize");
-        static MethodInfo validate = Helpers.Method(typeof(AudioController), "_ValidateAudioObjectPrefab");
+        static readonly MethodInfo itemInit = Helpers.Method(typeof(AudioItem), "_Initialize");
+        static readonly MethodInfo validate = Helpers.Method(typeof(AudioController), "_ValidateAudioObjectPrefab");
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(AudioController), "InitializeAudioItems")]
@@ -173,6 +175,8 @@ namespace NeonLite.Modules.Optimization
 
             if (__instance.isAdditionalAudioController || ____additionalAudioControllers == null)
                 return false;
+
+            GCManager.DisableGC(GCManager.GCType.FastStartAudio);
 
             // initialize all audio items
             int count = 0;
@@ -196,7 +200,7 @@ namespace NeonLite.Modules.Optimization
             }
 
             Dictionary<string, AudioItem> res = new(count);
-            
+
             foreach (var item in controllers.SelectMany(static x => x.AudioCategories).SelectMany(static x => x.AudioItems))
             {
                 if (item == null || res.ContainsKey(item.Name))
@@ -205,7 +209,8 @@ namespace NeonLite.Modules.Optimization
             }
 
             ____audioItems = res;
-                
+
+            GCManager.EnableGC(GCManager.GCType.FastStartAudio);
             return false;
         }
 
@@ -222,4 +227,3 @@ namespace NeonLite.Modules.Optimization
 #endif
     }
 }
-

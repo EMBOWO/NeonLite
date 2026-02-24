@@ -5,10 +5,11 @@ using System.Reflection.Emit;
 
 #pragma warning disable CS0414
 
-namespace NeonLite.Modules.Misc.VFX
+namespace NeonLite.Modules.VFX
 {
     // ORIGINAL CODE BY PUPPYPOWERTOOLS AUTHOR HECATE/PANDORAS FOX
-    internal class NoShocker : IModule
+    [Module]
+    internal static class NoShocker
     {
 #pragma warning disable CS0414
         const bool priority = true;

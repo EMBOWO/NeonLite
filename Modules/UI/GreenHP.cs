@@ -4,7 +4,8 @@ using UnityEngine;
 
 namespace NeonLite.Modules.UI
 {
-    internal class GreenHP : MonoBehaviour, IModule
+    [Module]
+    internal class GreenHP : MonoBehaviour
     {
 #pragma warning disable CS0414
         const bool priority = true;

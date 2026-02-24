@@ -6,7 +6,8 @@ using UnityEngine;
 
 namespace NeonLite.Modules.UI
 {
-    internal class Deltatime : IModule
+    [Module(10)]
+    internal static class Deltatime
     {
 #pragma warning disable CS0414
         const bool priority = true;

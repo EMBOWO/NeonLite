@@ -8,7 +8,8 @@ using UnityEngine.UI;
 
 namespace NeonLite.Modules.Misc
 {
-    internal class GhostsEverywhere : IModule
+    [Module]
+    internal static class GhostsEverywhere
     {
 #pragma warning disable CS0414
         const bool priority = true;

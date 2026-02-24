@@ -7,7 +7,8 @@ using UnityEngine;
 
 namespace NeonLite.Modules.VFX
 {
-    internal class NoFireball : IModule
+    [Module]
+    internal static class NoFireball
     {
 #pragma warning disable CS0414
         const bool priority = true;
@@ -18,8 +19,8 @@ namespace NeonLite.Modules.VFX
         static void Setup()
         {
             var setting = Settings.Add(Settings.h, "VFX", "noFireball", "Disable fireball screen effect", "Disables the red outline from fireball.", false);
-            startDelay = Settings.Add(Settings.h, "VFX", "fireballDelay", "Fireball skip", 
-                "Setting this option to anything above 0 will skip the first X seconds of the fireball instead of preventing it entirely.\nRequires the above setting to be on.", 
+            startDelay = Settings.Add(Settings.h, "VFX", "fireballDelay", "Fireball skip",
+                "Setting this option to anything above 0 will skip the first X seconds of the fireball instead of preventing it entirely.\nRequires the above setting to be on.",
                 0f, new MelonLoader.Preferences.ValueRange<float>(0, 2));
             active = setting.SetupForModule(Activate, static (_, after) => after);
         }

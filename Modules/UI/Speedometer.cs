@@ -10,7 +10,8 @@ using UnityEngine;
 namespace NeonLite.Modules.UI
 {
     // ORIGINAL CODE BY PUPPYPOWERTOOLS AUTHOR HECATE/PANDORAS FOX
-    internal class Speedometer : MonoBehaviour, IModule
+    [Module]
+    internal class Speedometer : MonoBehaviour
     {
         static Speedometer instance;
 #pragma warning disable CS0414

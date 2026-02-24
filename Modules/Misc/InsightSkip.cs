@@ -4,7 +4,8 @@ using System.Reflection;
 
 namespace NeonLite.Modules.Misc
 {
-    internal class InsightSkip : IModule
+    [Module]
+    internal static class InsightSkip
     {
 #pragma warning disable CS0414
         const bool priority = true;
@@ -24,8 +25,10 @@ namespace NeonLite.Modules.Misc
             active = activate;
         }
 
-        static bool PreShowcase(ref Action callback)
+        static bool PreShowcase(PlayerCardData cardData, Action callback)
         {
+            if (cardData.consumableType != PlayerCardData.ConsumableType.LoreCollectible && cardData.consumableType != PlayerCardData.ConsumableType.GiftCollectible)
+                return true;
             callback?.Invoke();
             return false;
         }
@@ -33,7 +36,7 @@ namespace NeonLite.Modules.Misc
         static void PreStartGame()
         {
             // if they haven't completed movement in this save
-            if (GameDataManager.levelStats[Singleton<Game>.Instance.GetGameData().GetLevelDataIDsList(false)[0]].GetTimeLastMicroseconds() < 0)
+            if (GameDataManager.levelStats[NeonLite.Game.GetGameData().GetLevelDataIDsList(false)[0]].GetTimeLastMicroseconds() < 0)
                 Activate(false);
         }
     }

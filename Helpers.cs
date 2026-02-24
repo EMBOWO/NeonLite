@@ -1,9 +1,8 @@
-﻿#if !DEBUG
-// #define ENABLE_PROFILER
-#endif
+﻿// #define ENABLE_PROFILER
 
 using HarmonyLib;
 using MelonLoader;
+using NeonLite.Modules;
 using NeonLite.Modules.UI;
 using System;
 using System.Collections.Generic;
@@ -40,8 +39,59 @@ namespace NeonLite
             return hm;
         }
 
-        static readonly Dictionary<Type, Dictionary<string, MethodInfo>> cachedMethods = new(200);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static internal bool HasModulesInAssembly(Assembly assembly)
+        {
+            var types = assembly.GetTypes();
 
+            // get the newtype module attrib
+            var attrib = types.Where(static x => x.GetCustomAttribute<ModuleAttribute>() != null)
+                .OrderByDescending(static x => x.GetCustomAttribute<ModuleAttribute>().priority);
+
+            // get the old interface style
+            var inter = types.Where(static t => typeof(IModule).IsAssignableFrom(t) && t != typeof(IModule));
+
+            return attrib.Union(inter).Any();
+        }
+        static internal List<Type> GetModulesInAssembly(Assembly assembly, bool onlyNew)
+        {
+            if (!HasModulesInAssembly(assembly))
+                return [];
+
+            var types = assembly.GetTypes();
+
+            // get the newtype module attrib
+            var attrib = types.Where(static x => x.GetCustomAttribute<ModuleAttribute>() != null)
+                .OrderByDescending(static x => x.GetCustomAttribute<ModuleAttribute>().priority);
+
+            // get the old interface style
+            var inter = types.Where(static t => typeof(IModule).IsAssignableFrom(t) && t != typeof(IModule));
+
+            var final = attrib.Union(inter);
+            if (onlyNew)
+                return [.. final.Where(x => !NeonLite.modules.Contains(x))];
+
+            return [.. final];
+        }
+
+
+#if DEBUG
+        static internal bool GetModulePrio(Type module)
+        {
+            bool r = (bool)Field(module, "priority").GetValue(null);
+            bool normal = r;
+            // if (module.FullName.Contains("Optimization"))
+            //     r = false;
+            NeonLite.Logger.DebugMsg($"prioforce {r != normal} {module} {r} {normal}");
+            return r;
+        }
+
+#else
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static internal bool GetModulePrio(Type module) => (bool)Helpers.Field(module, "priority").GetValue(null);
+#endif
+
+        static readonly Dictionary<Type, Dictionary<string, MethodInfo>> cachedMethods = new(200);
         static public MethodInfo Method(Type type, string name, Type[] param = null, Type[] generics = null)
         {
             var key = $"{name}|{param?.Join()}|{generics?.Join()}";
@@ -63,23 +113,38 @@ namespace NeonLite
                 }
 
                 if (method == null)
-                    method = type.GetMethod(name, AccessTools.allDeclared, null, param, []) ?? type.GetMethod(name, AccessTools.all, null, param, []);
-
-                if (method != null)
                 {
-                    if (generics != null)
-                        method = method.MakeGenericMethod(generics);
-                    if (cachedMethods.ContainsKey(type))
-                        cachedMethods[type][key] = method;
-                    else
-                        cachedMethods[type] = new(1)
-                        {
-                            [key] = method
-                        };
+                    try
+                    {
+                        method = type.GetMethod(name, AccessTools.allDeclared, null, param, []) ?? type.GetMethod(name, AccessTools.all, null, param, []);
+                    }
+                    catch (AmbiguousMatchException)
+                    {
+                        // great, 2 functions have the same params and name but one is generic and one isn't.
+                        // now we have to do the annoying thing of iterating them
+
+                        method = type.GetMethods(AccessTools.all).Where(x =>
+                            x.Name == name &&
+                            x.GetParameters().Select(p => p.ParameterType).SequenceEqual(param) &&
+                            x.IsGenericMethod == (generics != null)).FirstOrDefault();
+                    }
                 }
-                else
+
+                if (method == null)
                     NeonLite.Logger.DebugMsg($"Failed to find method {type} {name}!!!!");
+
+                if (method != null && generics != null)
+                    method = method.MakeGenericMethod(generics);
+                if (cachedMethods.ContainsKey(type))
+                    cachedMethods[type][key] = method;
+                else
+                    cachedMethods[type] = new(1)
+                    {
+                        [key] = method
+                    };
+
             }
+
             return method;
         }
         static readonly Dictionary<Type, Dictionary<string, FieldInfo>> cachedFields = new(200);
@@ -195,6 +260,8 @@ namespace NeonLite
 
         static bool profiling = true;
 
+        const bool FORCE_PROFILING = false;
+
         [Conditional("ENABLE_PROFILER")]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void EnableProfiling(bool enable) => profiling = enable;
@@ -205,11 +272,11 @@ namespace NeonLite
         {
             if (!profiling)
                 return;
-            if (NeonLite.DEBUG)
+            if (NeonLite.DEBUG || FORCE_PROFILING)
                 currentWatches.Push(new(name, new Stopwatch()));
             currentMarkers.Push(new(ProfilerCategory.Scripts, name));
             currentMarkers.Peek().Begin();
-            if (NeonLite.DEBUG)
+            if (NeonLite.DEBUG || FORCE_PROFILING)
             {
                 NeonLite.Logger.Msg($"{name} - START");
                 currentWatches.Peek().Item2.Start();
@@ -243,7 +310,7 @@ namespace NeonLite
                 return;
 
             currentMarkers.Pop().End();
-            if (NeonLite.DEBUG)
+            if (NeonLite.DEBUG || FORCE_PROFILING)
             {
                 (var name, var watch) = currentWatches.Pop();
                 watch.Stop();

@@ -6,10 +6,11 @@ using UnityEngine;
 
 namespace NeonLite.Modules.Optimization
 {
-    public class EnsureTimer : IModule
+    [Module(100)]
+    public static class EnsureTimer
     {
 #pragma warning disable CS0414
-        const bool priority = true;
+        const bool priority = false;
         const bool active = true;
 
         static bool processed = false;
@@ -321,7 +322,7 @@ namespace NeonLite.Modules.Optimization
         }
 #if DEBUG
         /* // for now, im tired of working on this and doing nothing else 2day
-        
+
         [HarmonyPatch(typeof(Game), "OnLevelWin")]
         [HarmonyPrefix]
         static bool StopFinishes()

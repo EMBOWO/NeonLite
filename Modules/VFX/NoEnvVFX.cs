@@ -3,7 +3,8 @@ using System.Reflection;
 
 namespace NeonLite.Modules.VFX
 {
-    internal class NoEnvVFX : IModule
+    [Module(-10)]
+    internal static class NoEnvVFX
     {
 #pragma warning disable CS0414
         const bool priority = true;

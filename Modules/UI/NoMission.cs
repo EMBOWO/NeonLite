@@ -3,7 +3,8 @@ using System.Reflection;
 
 namespace NeonLite.Modules.UI
 {
-    internal class NoMission : IModule
+    [Module(10)]
+    internal static class NoMission
     {
 #pragma warning disable CS0414
         const bool priority = true;
@@ -17,14 +18,11 @@ namespace NeonLite.Modules.UI
 
         static void Activate(bool activate)
         {
-            if (activate)
-                Patching.TogglePatch(activate, typeof(MenuScreenLocation), "CreateActionButton", PreCreateButton, Patching.PatchTarget.Prefix);
-            else
-                Patching.RemovePatch(typeof(MenuScreenLocation), "CreateActionButton", PreCreateButton);
+            Patching.TogglePatch(activate, typeof(MenuScreenLocation), "CreateActionButton", PreCreateButton, Patching.PatchTarget.Prefix);
 
             active = activate;
         }
 
-        static bool PreCreateButton(ref HubAction hubAction) => hubAction.ID != "PORTAL_CONTINUE_MISSION";
+        static bool PreCreateButton(HubAction hubAction) => hubAction.ID != "PORTAL_CONTINUE_MISSION" || NeonLite.Game.GetGameData().GetStoryStatus() != StoryStatus.CampaignComplete;
     }
 }

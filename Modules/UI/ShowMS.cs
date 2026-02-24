@@ -6,7 +6,8 @@ using System.Text;
 
 namespace NeonLite.Modules.UI
 {
-    internal class ShowMS : IModule
+    [Module(10)]
+    internal static class ShowMS
     {
 #pragma warning disable CS0414
         const bool priority = true;
@@ -78,15 +79,15 @@ namespace NeonLite.Modules.UI
             return timerBuilder.ToString();
         }
 
-        static bool OnTimerUpdate(ref PlayerUI __instance)
+        static bool OnTimerUpdate(PlayerUI __instance)
         {
             __instance.timerText.text = FormatTimeNoArgs(NeonLite.Game.GetCurrentLevelTimerMicroseconds() / 1000);
             return false;
         }
-        static void OnRushFinish(ref MenuScreenLevelRushComplete __instance) => __instance.timeText.SetText(Helpers.FormatTime(LevelRush.GetCurrentLevelRushTimerMicroseconds() / 1000, true, '.', true));
-        static void OnLevelFinish(ref MenuScreenResults __instance)
+        static void OnRushFinish(MenuScreenLevelRushComplete __instance) => __instance.timeText.SetText(Helpers.FormatTime(LevelRush.GetCurrentLevelRushTimerMicroseconds() / 1000, true, '.', true));
+        static void OnLevelFinish(MenuScreenResults __instance)
         {
-            LevelData currentLevel = Singleton<Game>.Instance.GetCurrentLevel();
+            LevelData currentLevel = NeonLite.Game.GetCurrentLevel();
             LevelStats levelStats = GameDataManager.levelStats[currentLevel.levelID];
             __instance._resultsScreenLevelTime.SetText(Helpers.FormatTime(levelStats.GetTimeLastMicroseconds() / 1000, true, '.', true));
         }

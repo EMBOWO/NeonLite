@@ -4,7 +4,8 @@
 namespace NeonLite.Modules.Misc
 {
     [HarmonyPatch(typeof(IntroCards))]
-    internal class SkipIntro : IModule
+    [Module]
+    internal static class SkipIntro
     {
 #pragma warning disable CS0414
         const bool priority = true;

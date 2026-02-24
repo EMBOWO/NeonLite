@@ -4,7 +4,8 @@ using System.Reflection.Emit;
 
 namespace NeonLite.Modules.Optimization
 {
-    internal class ScrollFix : IModule
+    [Module]
+    internal static class ScrollFix
     {
         const bool priority = true;
         static bool active = true;
@@ -34,8 +35,8 @@ namespace NeonLite.Modules.Optimization
                 .Insert(
                     new CodeInstruction(OpCodes.Leave, end), // add a leave
                     new CodeInstruction(OpCodes.Pop).WithBlocks(new ExceptionBlock(ExceptionBlockType.BeginCatchBlock)), // start the catch
-                    //new CodeInstruction(OpCodes.Ldc_I4_0), // store false if goes wrong
-                    //stfld.Instruction,
+                                                                                                                         //new CodeInstruction(OpCodes.Ldc_I4_0), // store false if goes wrong
+                                                                                                                         //stfld.Instruction,
                     new CodeInstruction(OpCodes.Leave, end).WithBlocks(new ExceptionBlock(ExceptionBlockType.EndExceptionBlock)) // add a leave for the catch
                  )
                 .InstructionEnumeration();

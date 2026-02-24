@@ -6,7 +6,8 @@ using UnityEngine;
 
 namespace NeonLite.Modules.Misc
 {
-    internal class OpenGhostDir : IModule
+    [Module]
+    internal static class OpenGhostDir
     {
 #pragma warning disable CS0414
         const bool priority = true;

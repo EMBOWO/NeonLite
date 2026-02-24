@@ -5,13 +5,12 @@ using UnityEngine;
 
 namespace NeonLite.Modules.UI
 {
-    internal class TimerColor : IModule
+    [Module]
+    internal static class TimerColor
     {
 #pragma warning disable CS0414
         const bool priority = true;
         static bool active = false;
-
-        static bool hit = false;
 
         static MelonPreferences_Entry<Color> setting;
 

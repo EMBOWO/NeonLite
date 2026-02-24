@@ -12,7 +12,8 @@ using UnityEngine;
 
 namespace NeonLite.Modules.UI
 {
-    internal class GameInfo : MonoBehaviour, IModule
+    [Module(10)]
+    internal class GameInfo : MonoBehaviour
     {
         static GameInfo instance;
 #pragma warning disable CS0414
@@ -155,7 +156,8 @@ namespace NeonLite.Modules.UI
         }
 
 
-        public class RestartManager : MonoBehaviour, IModule
+        [Module(9)]
+        public class RestartManager : MonoBehaviour
         {
 #pragma warning disable CS0414
             const bool priority = false;

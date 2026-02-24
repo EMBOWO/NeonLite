@@ -4,11 +4,12 @@ using System.Reflection;
 namespace NeonLite.Modules.Optimization
 {
     // this only covers some of them (some r inlined) but it does well for the most part
-    internal class FastQuit : IModule
+    [Module]
+    internal static class FastQuit
     {
 #pragma warning disable CS0414
-        const bool priority = true;
-        static bool active = true;
+        const bool priority = false;
+        const bool active = true;
 
         static readonly MethodInfo[] toPatch = [
             Helpers.Method(typeof(UpdateManager), "UnsubscribeFromUpdate"),

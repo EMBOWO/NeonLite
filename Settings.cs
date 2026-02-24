@@ -15,15 +15,15 @@ namespace NeonLite
         internal static readonly int VERSION = 3001003; // 1223344
         internal static MelonPreferences_Category mainCategory;
 
-        static readonly Dictionary<MelonPreferences_Entry, (string, string)> entryLoc = [];
-        static readonly Dictionary<MelonPreferences_Category, string> catLoc = [];
+        static readonly Dictionary<MelonPreferences_Entry, (string, string)> entryLoc = new(256);
+        static readonly Dictionary<MelonPreferences_Category, string> catLoc = new(32);
 
-        static readonly Dictionary<string, Dictionary<string, MelonPreferences_Category>> catHolders = [];
+        static readonly Dictionary<string, Dictionary<string, MelonPreferences_Category>> catHolders = new(32);
 
         internal const string h = "NeonLite";
 
 #if DEBUG
-        static ProxyObject locJSON = [];
+        static readonly ProxyObject locJSON = [];
         static string locPath;
 #endif
 
@@ -32,7 +32,7 @@ namespace NeonLite
         {
             mainCategory = MelonPreferences.CreateCategory("NeonLite");
             var ver = mainCategory.CreateEntry("VERSION", VERSION, "VERSION (DO NOT CHANGE)", null, true);
-            readVersion = ver.Value; 
+            readVersion = ver.Value;
             ver.Value = VERSION;
             if (NeonLite.DEBUG)
                 mainCategory.CreateEntry("DEBUG", true, is_hidden: true);
@@ -40,19 +40,39 @@ namespace NeonLite
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 
-        public static void AddHolder(string name) => catHolders.Add(name, []);
+        public static void AddHolder(string name) => catHolders.Add(name, new(8));
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static MelonPreferences_Category CreateCategory(string holder, string name)
         {
+            NeonLite.Logger.DebugMsg($"Create category {holder}/{name}");
             var c = MelonPreferences.CreateCategory($"{holder}/{name}");
-            catHolders[holder].Add(name ?? "", c);
+            try
+            {
+                catHolders[holder].Add(name ?? "", c);
+            }
+            catch (Exception)
+            {
+                NeonLite.Logger.Error($"Tried to add category {holder}/{name}, but {holder} hasn't been added!");
+            }
             if (string.IsNullOrEmpty(name))
                 c.DisplayName = holder;
             return c;
         }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MelonPreferences_Category FindCategory(string holder, string name) => (catHolders.TryGetValue(holder, out var val) ? (val.TryGetValue(name, out var c) ? c : null) : null) ?? CreateCategory(holder, name);
+        public static MelonPreferences_Category FindCategory(string holder, string name)
+        {
+            try
+            {
+                var val = catHolders[holder];
+                return (val.TryGetValue(name, out var c) ? c : null) ?? CreateCategory(holder, name);
+            }
+            catch (Exception)
+            {
+                NeonLite.Logger.Error($"Tried to fetch from category {holder}, but {holder} hasn't been added!");
+            }
+            return null;
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MelonPreferences_Entry<T> Find<T>(string holder, string category, string id, bool hide = false)
         {
@@ -65,12 +85,11 @@ namespace NeonLite
         public static MelonPreferences_Entry<T> Add<T>(string holder, string category, string id, string display, string description, T defaultVal, MelonLoader.Preferences.ValueValidator validator = null) =>
             Add(holder, category, id, display, description, defaultVal, false, validator);
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MelonPreferences_Entry<T> Add<T>(string holder, string category, string id, string display, string description, T defaultVal, bool hide, MelonLoader.Preferences.ValueValidator validator = null)
         {
             var cat = FindCategory(holder, category);
             var ret = cat.CreateEntry(id, defaultVal, display, description: description, validator: validator, is_hidden: hide);
-            string catloc = new(category.Where(char.IsLetter).Select(char.ToUpper).ToArray());
+            string catloc = new([.. category.Where(char.IsLetter).Select(char.ToUpper)]);
             if (!catLoc.ContainsKey(cat))
                 catLoc.Add(cat, $"SETTING_{catloc}");
             entryLoc.Add(ret, ($"SETTING_{catloc}_{id.ToUpper()}_T", description != null ? $"SETTING_{catloc}_{id.ToUpper()}_D" : null));
@@ -93,7 +112,7 @@ namespace NeonLite
                 NeonLite.Logger.DebugMsg($"{activate.Method.DeclaringType} {before} {after} {a}");
                 activate(a);
                 if (a && Patching.firstPass)
-                    Patching.RunPatches(false);
+                    Patching.RunPatches();
             });
             return pred(setting.DefaultValue, setting.Value);
         }

@@ -5,7 +5,8 @@ namespace NeonLite.Modules
     // This is an example template module that does nothing but print things to log every few seconds.
     // Make sure to remove the wrapped #if DEBUG when you copy this!
 #if DEBUG
-    internal class ExampleModule : MonoBehaviour, IModule
+    [Module]
+    internal class ExampleModule : MonoBehaviour
     {
 #pragma warning disable CS0414
         static ExampleModule instance;

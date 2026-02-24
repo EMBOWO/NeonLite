@@ -4,7 +4,8 @@ using System.Reflection;
 
 namespace NeonLite.Modules.UI
 {
-    internal class BegoneApocalypse : IModule
+    [Module(-15)]
+    internal static class BegoneApocalypse
     {
 #pragma warning disable CS0414
         const bool priority = true;

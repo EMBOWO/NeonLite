@@ -7,7 +7,8 @@ using UnityEngine.UI;
 
 namespace NeonLite.Modules.UI
 {
-    internal class CustomEnding : IModule
+    [Module(-11)]
+    internal static class CustomEnding
     {
 #pragma warning disable CS0414
         const bool priority = true;
@@ -16,6 +17,8 @@ namespace NeonLite.Modules.UI
         static bool firstLoad = true;
         static MelonPreferences_Entry<string> setting;
         static Sprite cache;
+
+        static Image character;
 
         static void Setup()
         {
@@ -33,25 +36,33 @@ namespace NeonLite.Modules.UI
             cache = null;
             active = activate;
             firstLoad = false;
+
+            if (active && NeonLite.activateLate)
+                OnLevelLoad(null);
         }
 
-        static void PostSetVisible(MenuScreenResults __instance)
+        static void OnLevelLoad(LevelData _)
         {
-            Image character = __instance.characterImage;
+            if (!character)
+                character = ((MenuScreenResults)MainMenu.Instance()._screenResults).characterImage;
 
             string path = setting.Value;
-            NeonLite.Logger.DebugMsg(path);
 
             if (!cache)
             {
                 if (!File.Exists(path))
                     return;
 
+
                 var file = File.ReadAllBytes(path);
                 cache = Helpers.LoadSprite(file, wrapMode: TextureWrapMode.Repeat, pivot: character.sprite.pivot / character.sprite.rect.size);
             }
+        }
 
-            character.sprite = cache;
+        static void PostSetVisible(MenuScreenResults __instance)
+        {
+            if (character.sprite != cache)
+                character.sprite = cache;
         }
     }
 }

@@ -7,7 +7,8 @@ using UnityEngine;
 
 namespace NeonLite.Modules.Optimization
 {
-    internal class FasterEnemies : IModule
+    [Module]
+    internal static class FasterEnemies
     {
 #pragma warning disable CS0414
         const bool priority = true;
@@ -50,7 +51,7 @@ namespace NeonLite.Modules.Optimization
 
         static bool NewStart(Enemy __instance, ref float ____headDriftSeed, ref EnemyAnimationController ____enemyAnimation, ref Animator ____animator)
         {
-            Helpers.EnableProfiling(false);     
+            Helpers.EnableProfiling(false);
 
             if (__instance is EnemyBoss)
             {
@@ -91,7 +92,7 @@ namespace NeonLite.Modules.Optimization
                 __instance.transform.rotation = Quaternion.LookRotation(vector, Vector3.up);
             }
             else if (__instance.randomizeStartRotation)
-            {   
+            {
                 UnityEngine.Random.InitState((int)(__instance.transform.position.x + __instance.transform.position.z));
                 __instance.transform.Rotate(new Vector3(0f, UnityEngine.Random.Range(0f, 360f), 0f));
             }

@@ -17,7 +17,8 @@ using Object = UnityEngine.Object;
 
 namespace NeonLite.Modules.Optimization
 {
-    public class SuperRestart : IModule
+    [Module(10)]
+    public static class SuperRestart
     {
 #pragma warning disable CS0414
         const bool priority = true;
@@ -115,7 +116,7 @@ namespace NeonLite.Modules.Optimization
                 if (LoadingScreenshot.i)
                     LoadingScreenshot.i.Stop();
 
-                GarbageCollector.GCMode = GarbageCollector.Mode.Enabled;
+                GCManager.EnableGC(GCManager.GCType.SuperRestart);
 
                 foreach (var func in prefixToRegister)
                 {
@@ -179,7 +180,7 @@ namespace NeonLite.Modules.Optimization
                 if (gcTimer.Value != -1 && ++restartCountGC >= gcTimer.Value)
                 {
                     restartCountGC = 0;
-                    GarbageCollector.GCMode = GarbageCollector.Mode.Enabled;
+                    GCManager.EnableGC(GCManager.GCType.SuperRestart);
                 }
                 if (memTimer.Value != -1 && ++restartCountRC >= memTimer.Value)
                     restartCountRC = 0;
@@ -188,7 +189,7 @@ namespace NeonLite.Modules.Optimization
                 yield return QuickLevelSetup(__instance, newLevel, StagingHappens() || mmUpdating);
 
                 if (restartCountGC == 0)
-                    GarbageCollector.GCMode = GarbageCollector.Mode.Disabled;
+                    GCManager.DisableGC(GCManager.GCType.SuperRestart);
             }
             else
             {
@@ -197,7 +198,7 @@ namespace NeonLite.Modules.Optimization
                     yield return TrimmedLevelSetup(__instance, newLevel);
                     yield break;
                 }//*/
-                GarbageCollector.GCMode = GarbageCollector.Mode.Enabled;
+                GCManager.EnableGC(GCManager.GCType.SuperRestart);
 
                 if (LoadingScreenshot.i)
                     LoadingScreenshot.i.Stop();
@@ -209,7 +210,7 @@ namespace NeonLite.Modules.Optimization
 
                 if (newLevel && newLevel.type != LevelData.LevelType.Hub)
                 {
-                    GarbageCollector.GCMode = GarbageCollector.Mode.Disabled;
+                    GCManager.DisableGC(GCManager.GCType.SuperRestart);
                     ready = true;
                 }
             }
@@ -218,7 +219,7 @@ namespace NeonLite.Modules.Optimization
         {
             if (!restartImmediately || !playRestartSound)
                 return true;
-            var g = Singleton<Game>.Instance;
+            var g = NeonLite.Game;
             if (LevelRush.IsLevelRush())
             {
                 if (LevelRush.IsHellRush())
@@ -372,7 +373,7 @@ namespace NeonLite.Modules.Optimization
             while (__result.MoveNext())
                 yield return __result.Current;
             NeonLite.Logger.DebugMsg($"PostMenuLoad {sceneName}");
-            if (!LoadManager.currentLevel || blacklisted.Contains(Singleton<Game>.Instance.GetCurrentLevel()?.levelID))
+            if (!LoadManager.currentLevel || blacklisted.Contains(NeonLite.Game.GetCurrentLevel()?.levelID))
                 yield break;
             var s = SceneManager.GetActiveScene();
             SceneManager.SetActiveScene(SceneManager.GetSceneAt(SceneManager.sceneCount - 1));

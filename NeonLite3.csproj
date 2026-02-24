@@ -1,225 +1,108 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{1DE1E79A-01E5-48F7-B877-48836E3EB396}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NeonLite</RootNamespace>
-    <AssemblyName>NeonLite</AssemblyName>
-    <TargetFramework>net472</TargetFramework>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <LangVersion>12</LangVersion>
-    <Configurations>Debug;Release;Release-GP</Configurations>
-    <Platforms>x64;AnyCPU</Platforms>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>$(DefineConstants);ENABLE_PROFILER</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <NoWarn>1701;1702;IDE0051;IDE0052</NoWarn>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>$(DefineConstants);ENABLE_PROFILER</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <NoWarn>1701;1702;IDE0051;IDE0052</NoWarn>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <NoWarn>CS0162;IDE0051;IDE0052</NoWarn>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <NoWarn>CS0162;IDE0051;IDE0052</NoWarn>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-GP|x64'">
-    <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release-GP\</OutputPath>
-    <DefineConstants>$(DefineConstants);XBOX</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <NoWarn>CS0162;IDE0051</NoWarn>
-    <NeonWhite Condition="Exists('C:\XboxGames\Neon White\Content')">C:\XboxGames\Neon White\Content</NeonWhite>
-    <Xbox>true</Xbox>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-GP|AnyCPU'">
-    <DebugType>none</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release-GP\</OutputPath>
-    <DefineConstants>$(DefineConstants);XBOX</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <NoWarn>CS0162;IDE0051</NoWarn>
-    <NeonWhite Condition="Exists('C:\XboxGames\Neon White\Content')">C:\XboxGames\Neon White\Content</NeonWhite>
-    <Xbox>true</Xbox>
-  </PropertyGroup>
+<Project>
+    <PropertyGroup>
+        <!-- The name of the mod -->
+        <NWName>NeonLite</NWName>
+        <NWAuthor>Faustas, MOPSKATER, stxticOVFL</NWAuthor>
+        <NWVersion>3.0.11-b1</NWVersion>
+        <!-- The name of the *DLL* -->
+        <AssemblyName>$(NWName)</AssemblyName>
 
-  <PropertyGroup Condition="'$(NeonWhite)' == ''">
-    <NeonWhite>C:\Program Files (x86)\Steam\steamapps\common\Neon White</NeonWhite>
-  </PropertyGroup>
-  
-  <PropertyGroup>
-    <ManagedFolder>$(NeonWhite)\Neon White_Data\Managed</ManagedFolder>
-    <OutputFolder Condition="'$(OutputFolder)' == ''">Mods</OutputFolder>
-  </PropertyGroup>
-  
-  <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\MelonLoader\net35\0Harmony.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Neon White_Data\Managed\Assembly-CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Neon White_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
-    </Reference>
-    <Reference Include="MelonLoader">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\MelonLoader\net35\MelonLoader.dll</HintPath>
-    </Reference>
-    <Reference Include="MelonPrefManager.Mono">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Mods\MelonPrefManager.Mono.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-    <Reference Condition="'$(Xbox)' == 'true'" Include="$(ManagedFolder)\BitCode.dll" Private="false" />
-    <Reference Condition="'$(Xbox)' == 'true'" Include="$(ManagedFolder)\BitCode.Platform.PlayFab.dll" Private="false" />
-    <Reference Include="Unity.InputSystem">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Neon White_Data\Managed\Unity.InputSystem.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.RenderPipelines.Core.Runtime">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Neon White_Data\Managed\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.TextMeshPro">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Neon White_Data\Managed\Unity.TextMeshPro.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Neon White_Data\Managed\UnityEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.AnimationModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Neon White_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.AssetBundleModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Neon White_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.AudioModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Neon White_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Neon White_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Neon White_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.IMGUIModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Neon White_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.ParticleSystemModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Neon White_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.PhysicsModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Neon White_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.TextCoreModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Neon White_Data\Managed\UnityEngine.TextCoreModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Neon White_Data\Managed\UnityEngine.UI.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UIModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Neon White_Data\Managed\UnityEngine.UIModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UnityWebRequestModule">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Neon White\Neon White_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
-    </Reference>
-  </ItemGroup>
+        <!-- Root namespace of the mod -->
+        <RootNamespace>$(AssemblyName)</RootNamespace>
 
-  <Target Name="MoveDllToMods" AfterTargets="Build" Condition="Exists('$(TargetDir)$(TargetName).dll') And Exists('$(NeonWhite)')">
-    <Message Text="Copying $(TargetName).dll to $(OutputFolder) folder..." Importance="High" />
+        <!-- The folder to copy the DLL to, e.g. Mods or Plugins -->
+        <NWOutput Condition="'$(NWOutput)' == ''">
+            Mods
+        </NWOutput>
+        <!-- Whether or not to add NeonLite as a reference. Either true or false. Looks in NWDir/Mods -->
+        <NWNeonLite Condition="'$(NWNeonLite)' == ''">
+            false <!-- we ARE neonlite -->
+        </NWNeonLite>
+        <!-- Whether or not to add UniverseLib as a reference. Either true or false.
+             Looks in NWDir/Mods and NWDir/UserLibs -->
+        <NWUniLib Condition="'$(NWUniLib)' == ''">
+            false
+        </NWUniLib>
 
-    <Delete Condition="Exists('$(NeonWhite)\$(OutputFolder)\$(TargetName).dll.old')" Files="$(NeonWhite)\$(OutputFolder)\$(TargetName).dll.old" />
+        <!-- Whether or not to fill in the assembly info for you. This should usually be true.
+             This also controls GenerateAssemblyInfo -->
+        <NWAssembly Condition="'$(NWAssembly)' == ''">
+            true
+        </NWAssembly>
+        <!-- The name of the class that inherits the relevant Melon class, relative to the root namespace.
+             Usually this matches the name of the root namespace.
+             Only used if NWAssembly is on -->
+        <NWMelonClass>$(RootNamespace)</NWMelonClass>
+        <!-- The color to show in the log for the project. #RRGGBB.
+             Only used if NWAssembly is on -->
+        <NWColor>#37BEB0</NWColor>
+        <!-- The author color to show in the log. #RRGGBB.
+             Only used if NWAssembly is on -->
+        <NWAuthorColor>#FFFFFF</NWAuthorColor>
 
-    <Move Condition="Exists('$(NeonWhite)\$(OutputFolder)\$(TargetName).dll')" SourceFiles="$(NeonWhite)\$(OutputFolder)\$(TargetName).dll" DestinationFiles="$(NeonWhite)\$(OutputFolder)\$(TargetName).dll.old" />
+    </PropertyGroup>
 
-    <Copy SourceFiles="$(TargetDir)$(TargetName).dll" DestinationFiles="$(NeonWhite)\$(OutputFolder)\$(TargetName).dll" />
-  </Target>
+    <Import Project="NWCommon.targets" />
 
-  <ItemGroup>
-    <Compile Update="Resources\r.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>r.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <EmbeddedResource Update="Resources\r.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>r.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <None Include="Resources\cheaterlist.json" />
-    <None Include="Resources\cheaterlist-xbox.json" />
-    <None Include="Resources\communitymedals.json" />
-    <None Include="Resources\DiscordDLL" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Compile Remove="UnityProject\**\*.cs" />
-    <None Remove="UnityProject\**\*" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <None Remove="Assets\Sprites\CrystalBlud.png" />
-    <None Remove="Assets\Sprites\CrystalTopaz.png" />
-    <None Remove="Assets\Sprites\MedalBlud.png" />
-    <None Remove="Assets\Sprites\MedalTopaz.png" />
-    <None Remove="Assets\Sprites\MikeyBlud.png" />
-    <None Remove="Assets\Sprites\MikeyTopaz.png" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <EmbeddedResource Include="Assets\Sprites\CrystalBlud.png" />
-    <EmbeddedResource Include="Assets\Sprites\CrystalTopaz.png" />
-    <EmbeddedResource Include="Assets\Sprites\MedalBlud.png" />
-    <EmbeddedResource Include="Assets\Sprites\MedalTopaz.png" />
-    <EmbeddedResource Include="Assets\Sprites\MikeyBlud.png" />
-    <EmbeddedResource Include="Assets\Sprites\MikeyTopaz.png" />
-  </ItemGroup>
+    <!-- Non-NWCommon properties, items, etc go here -->
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <LangVersion>12.0</LangVersion>
+        <NoWarn>$(NoWarn);CS0414;IDE0051;IDE0052</NoWarn>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+        <DefineConstants Condition="'$(Configuration)'=='Debug'">$(DefineConstants);ENABLE_PROFILER;</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Update="Resources/r.resx">
+            <!-- <Generator>ResXFileCodeGenerator</Generator> -->
+            <Generator>MSBuild:Compile</Generator>
+            <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+            <StronglyTypedNamespace>NeonLite.Resources</StronglyTypedNamespace>
+            <StronglyTypedFileName>$(IntermediateOutputPath)r.Designer.cs</StronglyTypedFileName>
+            <StronglyTypedClassName>r</StronglyTypedClassName>
+        </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Add further references by using $(NWManaged) and $(NWDirectory): -->
+        <Reference Include="$(NWManaged)/Unity.InputSystem.dll" Private="false" />
+        <Reference Include="$(NWManaged)/Unity.RenderPipelines.Core.Runtime.dll" Private="false" />
+        <Reference Include="$(NWManaged)/Unity.TextMeshPro.dll" Private="false" />
+        <Reference Include="$(NWManaged)/UnityEngine.AnimationModule.dll" Private="false" />
+        <Reference Include="$(NWManaged)/UnityEngine.AssetBundleModule.dll" Private="false" />
+        <Reference Include="$(NWManaged)/UnityEngine.AudioModule.dll" Private="false" />
+        <Reference Include="$(NWManaged)/UnityEngine.ImageConversionModule.dll" Private="false" />
+        <Reference Include="$(NWManaged)/UnityEngine.IMGUIModule.dll" Private="false" />
+        <Reference Include="$(NWManaged)/UnityEngine.ParticleSystemModule.dll" Private="false" />
+        <Reference Include="$(NWManaged)/UnityEngine.PhysicsModule.dll" Private="false" />
+        <Reference Include="$(NWManaged)/UnityEngine.TextCoreModule.dll" Private="false" />
+        <Reference Include="$(NWManaged)/UnityEngine.UI.dll" Private="false" />
+        <Reference Include="$(NWManaged)/UnityEngine.UIModule.dll" Private="false" />
+        <Reference Include="$(NWManaged)/UnityEngine.UnityWebRequestModule.dll" Private="false" />
+        <Reference Include="$(NWManaged)/Newtonsoft.Json.dll" Private="false" />
+
+        <Reference Include="$(NWManaged)/eToileAssembly.dll" Private="false" Condition="'$(NWXbox)' != 'true'" />
+    </ItemGroup>
+
+    <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
+
+	<ItemGroup>
+		<None Remove="Assets\Sprites\CrystalBlud.png" />
+		<None Remove="Assets\Sprites\CrystalTopaz.png" />
+		<None Remove="Assets\Sprites\MedalBlud.png" />
+		<None Remove="Assets\Sprites\MedalTopaz.png" />
+		<None Remove="Assets\Sprites\MikeyBlud.png" />
+		<None Remove="Assets\Sprites\MikeyTopaz.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="Assets\Sprites\CrystalBlud.png" />
+		<EmbeddedResource Include="Assets\Sprites\CrystalTopaz.png" />
+		<EmbeddedResource Include="Assets\Sprites\MedalBlud.png" />
+		<EmbeddedResource Include="Assets\Sprites\MedalTopaz.png" />
+		<EmbeddedResource Include="Assets\Sprites\MikeyBlud.png" />
+		<EmbeddedResource Include="Assets\Sprites\MikeyTopaz.png" />
+	</ItemGroup>
 </Project>

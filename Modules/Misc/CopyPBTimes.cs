@@ -6,7 +6,8 @@ using UnityEngine;
 
 namespace NeonLite.Modules.Misc
 {
-    internal class CopyPBTimes : IModule
+    [Module]
+    internal static class CopyPBTimes
     {
 #pragma warning disable CS0414
         const bool priority = true;
@@ -17,7 +18,8 @@ namespace NeonLite.Modules.Misc
 
         static MelonPreferences_Entry<bool> titleButtonS;
 
-        static void Setup() {
+        static void Setup()
+        {
             titleButtonS = Settings.Add(Settings.h, "UI", "copyPBTitle", "Copy PB Times in Title", "Allows you to copy your PB times from the title screen.", true);
         }
 

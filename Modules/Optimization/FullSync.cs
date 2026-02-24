@@ -4,7 +4,8 @@ using System.Collections.Generic;
 
 namespace NeonLite.Modules.Optimization
 {
-    internal class FullSync : IModule
+    [Module]
+    internal static class FullSync
     {
 #pragma warning disable CS0414
         const bool priority = true;

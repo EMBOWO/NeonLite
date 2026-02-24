@@ -10,7 +10,8 @@ using UnityEngine;
 
 namespace NeonLite.Modules.Misc
 {
-    internal class DiscordActivity : MonoBehaviour, IModule
+    [Module]
+    internal class DiscordActivity : MonoBehaviour
     {
         static DiscordActivity instance;
 #pragma warning disable CS0414
@@ -69,9 +70,9 @@ namespace NeonLite.Modules.Misc
         {
             if (rushType == LevelRush.LevelRushType.None)
                 rushType = LevelRush.GetCurrentLevelRushType();
-            
+
             // for now, just have it panic and revert to white
-            // customrush will probably have to hook onto it? which we can totally do 
+            // customrush will probably have to hook onto it? which we can totally do
             if (rushType >= LevelRush.LevelRushType.Count)
                 rushType = LevelRush.LevelRushType.WhiteRush;
 

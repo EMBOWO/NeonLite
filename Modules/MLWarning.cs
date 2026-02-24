@@ -5,12 +5,13 @@ using MelonLoader;
 
 namespace NeonLite.Modules
 {
-    internal class MLVersionWarn : IModule
+    [Module(101)]
+    internal static class MLVersionWarn
     {
 #pragma warning disable CS0414
         const bool priority = true;
         const bool active = true;
-         
+
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         internal static extern IntPtr MessageBox(int hWnd, string text, string caption, uint type);
 

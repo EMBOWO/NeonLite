@@ -9,7 +9,8 @@ namespace NeonLite.Modules.Misc
     // ORIGINAL CODE BY PUPPYPOWERTOOLS AUTHOR HECATE/PANDORAS FOX
     // this used to just set the powerprefs variable but powerprefs is basically entirely gone in the xbox release
     // so we have to use a transpiler here instead
-    internal class RushSeed : IModule
+    [Module]
+    internal static class RushSeed
     {
 #pragma warning disable CS0414
         const bool priority = true;

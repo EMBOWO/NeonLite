@@ -6,7 +6,8 @@ using System.Reflection;
 
 namespace NeonLite.Modules.Optimization
 {
-    internal class CacheGhost : IModule
+    [Module]
+    internal static class CacheGhost
     {
 #pragma warning disable CS0414
         const bool priority = true;

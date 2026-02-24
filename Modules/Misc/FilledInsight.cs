@@ -6,7 +6,8 @@ using UnityEngine;
 
 namespace NeonLite.Modules.Misc
 {
-    internal class FilledInsight : IModule
+    [Module]
+    internal static class FilledInsight
     {
 #pragma warning disable CS0414
         const bool priority = true;

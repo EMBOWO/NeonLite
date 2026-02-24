@@ -6,7 +6,8 @@ using System.Reflection.Emit;
 namespace NeonLite.Modules.UI
 {
 #if !XBOX
-    internal class LeaderboardFix : IModule
+    [Module]
+    internal static class LeaderboardFix
     {
 #pragma warning disable CS0414
         const bool priority = true;

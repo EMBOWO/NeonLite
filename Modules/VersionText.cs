@@ -3,7 +3,8 @@ using UnityEngine;
 
 namespace NeonLite.Modules
 {
-    internal class VersionText : MonoBehaviour, IModule
+    [Module]
+    internal class VersionText : MonoBehaviour
     {
 #pragma warning disable CS0414
         const bool priority = false;
@@ -12,7 +13,6 @@ namespace NeonLite.Modules
 
         static GameObject prefab;
 
-        TextMeshProUGUI text;
         internal static string ver;
 
         static void Setup()
@@ -32,10 +32,23 @@ namespace NeonLite.Modules
                 Utils.InstantiateUI(prefab, "VersionText", MainMenu.Instance()._screenTitle.transform.Find("Logo")).AddComponent<VersionText>();
         }
 
-        void Start()
+        TextMeshProUGUI text;
+        GameObject verifyText;
+
+
+        void Awake()
         {
             text = GetComponent<TextMeshProUGUI>();
             text.text = $"NeonLite v{ver}";
+
+            verifyText = transform.GetChild(0).gameObject;
+            Verifier.SpriteAsset = verifyText.GetComponent<TextMeshProUGUI>().spriteAsset;
+            Update();
+        }
+
+        void Update()
+        {
+            verifyText.SetActive(!Verifier.Verified);
         }
     }
 }

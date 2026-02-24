@@ -3,11 +3,12 @@ using System.Reflection;
 
 #pragma warning disable CS0414
 
-namespace NeonLite.Modules.UI.Toggles
+namespace NeonLite.Modules.UI
 {
     // these are all super small so into 1 file they go
 
-    internal class HidePortrait : IModule
+    [Module]
+    internal static class HidePortrait
     {
         const bool priority = true;
         static bool active = false;
@@ -26,7 +27,8 @@ namespace NeonLite.Modules.UI.Toggles
             RM.ui.portraitUI.gameObject.SetActive(false);
         }
     }
-    internal class HideBackstory : IModule
+    [Module]
+    internal static class HideBackstory
     {
         const bool priority = true;
         static bool active = false;
@@ -45,7 +47,8 @@ namespace NeonLite.Modules.UI.Toggles
             RM.ui.portraitUI.transform.parent.Find("Backstory").gameObject.SetActive(false);
         }
     }
-    internal class HideBottomBar : IModule
+    [Module]
+    internal static class HideBottomBar
     {
         const bool priority = true;
         static bool active = false;
@@ -64,7 +67,8 @@ namespace NeonLite.Modules.UI.Toggles
             RM.ui.transform.Find("Overlays/BottomBar").gameObject.SetActive(false);
         }
     }
-    internal class HideDamage : IModule
+    [Module]
+    internal static class HideDamage
     {
         const bool priority = true;
         static bool active = false;
@@ -84,7 +88,8 @@ namespace NeonLite.Modules.UI.Toggles
         }
     }
 
-    internal class NoCRT : IModule
+    [Module]
+    internal static class NoCRT
     {
         const bool priority = true;
         static bool active = false;

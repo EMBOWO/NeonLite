@@ -16,7 +16,8 @@ namespace NeonLite
         internal static new HarmonyLib.Harmony Harmony { get; private set; }
         // The main Logger instance for use with debug.
         internal static MelonLogger.Instance Logger { get; private set; }
-        internal static Game Game { get { return Singleton<Game>.Instance; } }
+        static Game _gamecache = null;
+        internal static Game Game { get { _gamecache ??= Singleton<Game>.Instance; return _gamecache; } }
 
 #if DEBUG
         internal static bool DEBUG { get; private set; } = true;

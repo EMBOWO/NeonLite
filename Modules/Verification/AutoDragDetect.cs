@@ -1,10 +1,10 @@
 using System.Runtime.InteropServices;
 using UnityEngine.InputSystem;
 
-namespace NeonLite.Modules.Misc
+namespace NeonLite.Modules.Verification
 {
     [Module]
-    internal static class AutoClickDetect
+    internal static class AutoDragDetect
     {
         const bool priority = false;
         const bool active = true;
@@ -100,7 +100,7 @@ namespace NeonLite.Modules.Misc
 
             // we failed
             autoclickFailed = true;
-            Verifier.SetRunUnverifiable(NeonLite.i.MelonAssembly, string.Format(AUTOCLICK_FAIL, AUTOCLICK_COUNT, autoComp.Max(), autoCons.Average(), autoHold.Average()));
+            Verifier.SetRunUnverifiable(typeof(AutoDragDetect), string.Format(AUTOCLICK_FAIL, AUTOCLICK_COUNT, autoComp.Max(), autoCons.Average(), autoHold.Average()));
         }
 
         static readonly double[] dragComp = new double[DRAGCLICK_COUNT - 1];
@@ -126,7 +126,7 @@ namespace NeonLite.Modules.Misc
 
             // if we're here we failed
             dragclickFailed = true;
-            Verifier.SetRunUnverifiable(NeonLite.i.MelonAssembly, string.Format(DRAGCLICK_FAIL, DRAGCLICK_COUNT, dragComp.Min(), dragComp.Max(), dragComp.Average()));
+            Verifier.SetRunUnverifiable(typeof(AutoDragDetect), string.Format(DRAGCLICK_FAIL, DRAGCLICK_COUNT, dragComp.Min(), dragComp.Max(), dragComp.Average()));
         }
 
 #if DEBUG

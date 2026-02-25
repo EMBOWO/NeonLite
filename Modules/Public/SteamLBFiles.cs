@@ -17,7 +17,14 @@ namespace NeonLite.Modules
         const bool priority = false;
         const bool active = true;
 
-        public delegate string LBWriteFunc(BinaryWriter writer, bool isGlobal);
+        public enum LBType
+        {
+            Level,
+            Rush,
+            Global
+        }
+
+        public delegate string LBWriteFunc(BinaryWriter writer, LBType type);
         public delegate void LBLoadFunc(BinaryReader reader, LeaderboardScore score);
 
         public static event LBWriteFunc OnLBWrite;
@@ -90,8 +97,16 @@ namespace NeonLite.Modules
             if (list == null)
                 return true;
 
+            var rushtype = LevelRush.IsLevelRush() ?
+                LevelRush.GetCurrentLevelRush().levelRushType.ToString() + "_" +
+                    (LevelRush.IsHellRush() ? "Hell" : "Heaven") : null;
+
             var level = (LevelData)Helpers.Field(typeof(Leaderboards), "currentLevelData").GetValue(___leaderboardsRef);
-            string filepath = Path.Combine("NeonLite", "Levels", level.levelID, "lbugc.bin");
+            string filepath = ___globalNeonRankingsRequest ? Path.Combine("NeonLite", "globallbugc.bin")
+                                : (rushtype != null ? Path.Combine("NeonLite", "Rush", rushtype, "lbugc.bin") :
+                                    Path.Combine("NeonLite", "Levels", level.levelID, "lbugc.bin"));
+
+            LBType type = ___globalNeonRankingsRequest ? LBType.Global : (rushtype != null ? LBType.Rush : LBType.Level);
 
             NeonLite.Logger.DebugMsg(filepath);
 
@@ -113,7 +128,7 @@ namespace NeonLite.Modules
 
                 {
                     using BinaryWriter writer = new(file, Encoding.UTF8, true);
-                    filename = dg.Invoke(writer, ___globalNeonRankingsRequest);
+                    filename = dg.Invoke(writer, type);
 
                     if (filename == null)
                         continue;

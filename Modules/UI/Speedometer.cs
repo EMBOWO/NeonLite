@@ -92,6 +92,8 @@ namespace NeonLite.Modules.UI
                 if (Localization.fbi != -1)
                     PrepareAltFont();
             };
+
+            Localization.OnFontSetSetup += Relocalize;
         }
 
         static void Activate(bool activate)
@@ -106,6 +108,7 @@ namespace NeonLite.Modules.UI
                 {
                     NeonLite.Game.winAction += LevelWin;
                     Utils.InstantiateUI(prefab, "Speedometer", NeonLite.mmHolder.transform).AddComponent<Speedometer>();
+                    Relocalize();
                 }
             }
             else

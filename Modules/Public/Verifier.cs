@@ -422,9 +422,9 @@ namespace NeonLite.Modules
 
 
 #if !XBOX
-        static string OnSteamLBWrite(BinaryWriter writer, bool global)
+        static string OnSteamLBWrite(BinaryWriter writer, SteamLBFiles.LBType type)
         {
-            if (global)
+            if (type != SteamLBFiles.LBType.Level)
                 return null;
             var semver = NeonLite.i.Info.SemanticVersion;
             writer.Write((byte)1); // VERSION

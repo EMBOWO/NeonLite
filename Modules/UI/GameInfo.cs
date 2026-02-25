@@ -68,6 +68,8 @@ namespace NeonLite.Modules.UI
                 if (tried)
                     Activate(true);
             };
+
+            Localization.OnFontSetSetup += SetupFonts;
         }
 
         static void Activate(bool activate)
@@ -128,6 +130,18 @@ namespace NeonLite.Modules.UI
             instance.levelTimerI.time = 0;
         }
 
+        static bool fontsSet = false;
+        static void SetupFonts()
+        {
+            if (!instance || !instance.seshAttemptsI)
+                return;
+            instance.seshTimerI.Localize();
+            instance.levelTimerI.Localize();
+            instance.totalAttemptsI.Localize();
+            instance.seshAttemptsI.Localize();
+            fontsSet = true;
+        }
+
         void Awake() => instance = this;
 
         void Start()
@@ -140,6 +154,9 @@ namespace NeonLite.Modules.UI
             seshPBI = transform.Find("SessionPB").GetOrAddComponent<SessionPB>();
             totalAttemptsI = transform.Find("AttemptsTotal").GetOrAddComponent<AttemptsTotal>();
             seshAttemptsI = transform.Find("AttemptsNow").GetOrAddComponent<AttemptsNow>();
+
+            if (!fontsSet)
+                SetupFonts();
         }
 
         void Update()
@@ -329,7 +346,6 @@ namespace NeonLite.Modules.UI
             {
                 instance = this;
                 AxKLocalizedTextLord.GetInstance().AddText(this);
-                Localize();
             }
             internal static void Relocalize() => instance?.Localize();
             public void Localize()
@@ -348,11 +364,7 @@ namespace NeonLite.Modules.UI
             string localizeCache = "";
             TextMeshProUGUI text;
             void Awake() => text = GetComponent<TextMeshProUGUI>();
-            void Start()
-            {
-                AxKLocalizedTextLord.GetInstance().AddText(this);
-                Localize();
-            }
+            void Start() => AxKLocalizedTextLord.GetInstance().AddText(this);
             public void Localize()
             {
                 SetKey("NeonLite/INFO_ATTEMPTS_TOTAL");

@@ -12,7 +12,7 @@ namespace NeonLite.Modules
     public static class Localization
     {
 #pragma warning disable CS0414
-        const bool priority = true;
+        const bool priority = false;
         const bool active = true;
 
         static bool wasActivated = false;
@@ -20,8 +20,17 @@ namespace NeonLite.Modules
         const string overrideSheet = "1hfiFL_7ainT1jP5s4At_fWSJOzNMHUJhAuoP23QsEUY";
         const string overrideSheetName = "I2Loc NW Mod Localization";
 
+        internal static event Action OnFontSetSetup;
+
         internal static AxKLocalizedText_FontLib.FontSetPro fbs;
         internal static int fbi = -1;
+
+        internal static void Setup()
+        {
+            // this is illegal but we're doing it anyway
+            Patching.AddPatch(typeof(LocalizationManager), "AddSource", ChangeSource, Patching.PatchTarget.Prefix, true);
+            Patching.AddPatch(typeof(LocalizationManager), "DoLocalizeAll", LocalizeAll, Patching.PatchTarget.Prefix, true);
+        }
 
         internal static void Activate(bool _)
         {
@@ -29,13 +38,13 @@ namespace NeonLite.Modules
                 return;
             wasActivated = true;
 
-            Patching.AddPatch(typeof(LocalizationManager), "AddSource", ChangeSource, Patching.PatchTarget.Prefix, true);
-            Patching.AddPatch(typeof(LocalizationManager), "DoLocalizeAll", LocalizeAll, Patching.PatchTarget.Prefix, true);
-            NeonLite.OnBundleLoad += SetupFontSet;
+            SetupFontSet();
         }
 
-        internal static void SetupFontSet(AssetBundle bundle)
+        internal static void SetupFontSet()
         {
+            NeonLite.Logger.DebugMsg("SETUPFONTSET");
+            var bundle = NeonLite.bundle;
             (fbs, fbi) = AddFontSet(bundle.LoadAsset<TMP_FontAsset>("Assets/Fonts/NovaMono-Regular SDF.asset"));
             var buffer = bundle.LoadAsset<TMP_FontAsset>("Assets/Fonts/NotoSansTC-Regular SDF.asset");
             fbs.chinese = buffer;
@@ -53,10 +62,13 @@ namespace NeonLite.Modules
             fbs.russian = buffer;
             fbs.russianFontMats = [buffer.material];
             UpdateFontSet(fbs, fbi);
+            OnFontSetSetup?.Invoke();
         }
 
         static void ChangeSource(LanguageSourceData Source)
         {
+            NeonLite.Logger.DebugMsg("CHANGESOURCE");
+
             if (!Source.HasGoogleSpreadsheet())
                 return;
             Source.Google_SpreadsheetKey = overrideSheet;
@@ -87,13 +99,19 @@ namespace NeonLite.Modules
 
         public static (AxKLocalizedText_FontLib.FontSetPro, int) AddFontSet(TMP_FontAsset font)
         {
+            NeonLite.Logger.DebugMsg("ADDFONTSET");
+
             AxKLocalizedText_FontLib.FontSetPro ret = new()
             {
                 english = font,
                 englishFontMats = [font?.material]
             };
             var fontLib = AxKLocalizedTextLord.GetInstance().fontLib;
+            NeonLite.Logger.DebugMsg($"fontlib {fontLib}");
+            NeonLite.Logger.DebugMsg($"fontlibL {fontLib.textMeshProFontSets.Length}");
             fontLib.textMeshProFontSets = [.. fontLib.textMeshProFontSets.AddItem(ret)];
+            NeonLite.Logger.DebugMsg($"fontlib {fontLib.textMeshProFontSets.Length}");
+
             int i = fontLib.textMeshProFontSets.Length - 1;
             return (ret, i);
         }

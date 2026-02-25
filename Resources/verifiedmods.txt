@@ -25,8 +25,8 @@ HeavenlyLoading
 ListPB
 ResetRushButton
 connie modpack
-connie_modpack
 connie.modpack
+NoMoreNewFile
 
 
 // The listed mods are not allowed, but correctly handle being enabled/disabled,
@@ -36,6 +36,7 @@ CustomRushMode
 CustomCardLoadout
 MikeyMode
 MoreRushes
+Hardcore
 
 // these old mods are here for compatibility, let me know if i missed any
 NeonsOnSpeed
@@ -43,6 +44,7 @@ ChapterRush
 FullSync
 RMMBY
 PuppyPowertools
+NeonWhiteRP
 
 // it's easier to keep this one in here
 UnityExplorer.ML.Mono

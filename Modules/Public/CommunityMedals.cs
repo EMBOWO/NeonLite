@@ -92,6 +92,7 @@ namespace NeonLite.Modules
         internal static MelonPreferences_Entry<bool> leaderboardSaphPlus;
         public static MelonPreferences_Entry<float> hueShift;
         internal static MelonPreferences_Entry<string> overrideURL;
+        internal static MelonPreferences_Entry<bool> showSapphPlusInLB;
 
         public static Material HueShiftMat { get; private set; } = null;
         static Material defaultMat;
@@ -105,6 +106,7 @@ namespace NeonLite.Modules
             hideLeaderboard = Settings.Add(Settings.h, "Medals", "hideLeaderboard", "Hide Leaderboard Medals", "Unachieved medals will appear the same as your own on the leaderboards.", false);
             leaderboardSaphPlus = Settings.Add(Settings.h, "Medals", "leadeerboardSaphPlus", "Show Saph+ on Leaderboard", "Show medals higher than Sapphire on leaderboards", true);
             overrideURL = Settings.Add(Settings.h, "Medals", "overrideURL", "Extension URL", "Specifies additional community medals JSON URL to apply on top of the existing community medals.", "");
+            showSapphPlusInLB = Settings.Add(Settings.h, "Medals", "showSapphPlusInLB", "Show Sapph+ Medals in LB", "Enable to display medals above sapphre in the level leaderboards and not only in your local time.", false);
 
             active = setting.SetupForModule(Activate, static (_, after) => after);
             hueShift.OnEntryValueChanged.Subscribe(static (_, after) => HueShiftMat?.SetFloat("_Shift", after));

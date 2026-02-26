@@ -25,7 +25,7 @@ namespace NeonLite.Modules
         }
 
         public delegate string LBWriteFunc(BinaryWriter writer, LBType type, bool sameScore);
-        public delegate void LBLoadFunc(BinaryReader reader, LeaderboardScore score);
+        public delegate void LBLoadFunc(BinaryReader reader, int length, LeaderboardScore score);
 
         public static event LBWriteFunc OnLBWrite;
         static readonly Dictionary<string, List<LBLoadFunc>> onScoreLoad = [];
@@ -373,7 +373,7 @@ namespace NeonLite.Modules
                         {
                             ugcStream.Seek(0, SeekOrigin.Begin);
 
-                            f.Invoke(ugcReader, ugcdown.score);
+                            f.Invoke(ugcReader, length, ugcdown.score);
                         }
                     }
                 }

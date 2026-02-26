@@ -897,7 +897,7 @@ namespace NeonLite.Modules
             return LB_FILE;
         }
 
-        static void OnSteamLBRead(BinaryReader reader, LeaderboardScore score)
+        static void OnSteamLBRead(BinaryReader reader, int length, LeaderboardScore score)
         {
             var ver = reader.ReadByte();
 
@@ -930,14 +930,22 @@ namespace NeonLite.Modules
                             reader.ReadByte();
 
                             // read the solo saph byte
-                            medals.Add((Colors[I(MedalEnum.Sapphire)], reader.ReadByte()));
+                            var count = reader.ReadByte();
+                            medals.Add((Colors[I(MedalEnum.Sapphire)], count));
+                            NeonLite.Logger.BetaMsg($"Medal UGC: Read just saph {count}");
 
-                            while (reader.PeekChar() != -1)
+                            while (reader.BaseStream.Position < length)
                             {
-                                reader.ReadByte(); //index, we do nothing with
+                                var index = reader.ReadByte(); //index, we do nothing with
+                                NeonLite.Logger.BetaMsg($"Medal UGC: Read index {index}");
 
                                 var col = new Color32(reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), 0xFF);
-                                medals.Add((col, reader.ReadByte()));
+                                NeonLite.Logger.BetaMsg($"Color? {col}");
+
+                                count = reader.ReadByte();
+                                NeonLite.Logger.BetaMsg($"Count? {count}");
+
+                                medals.Add((col, count));
                             }
                         }
                         else
@@ -952,7 +960,7 @@ namespace NeonLite.Modules
             }
 
             StringBuilder builder = new(); // we make the demon now
-            const string COLORED = "<size=175%><voffset=-0.09em>\u2022</voffset></size><size=50%> </size>";
+            const string COLORED = "<size=175%><voffset=-0.07em>\u2022</voffset></size><size=50%> </size>";
             const int MARGIN = 15;
 
             medals.Reverse();
@@ -981,7 +989,7 @@ namespace NeonLite.Modules
             tmp.alignment = TextAlignmentOptions.MidlineRight;
             tmp.richText = true;
             tmp.text = builder.ToString();
-            tmp.fontSize = 16;
+            tmp.fontSize = 17;
             tmp.margin = new(0, 0, MARGIN, 0);
 
             var username = score._username.rectTransform;

@@ -496,7 +496,7 @@ namespace NeonLite.Modules
             return LB_FILE;
         }
 
-        static void OnSteamLBRead(BinaryReader reader, LeaderboardScore score)
+        static void OnSteamLBRead(BinaryReader reader, int length, LeaderboardScore score)
         {
             var ver = reader.ReadByte();
 

@@ -84,6 +84,13 @@ namespace NeonLite.Modules
 
         static bool OnLBUploaded(LeaderboardScoreUploaded_t pCallback, bool bIOFailure, Leaderboards ___leaderboardsRef, bool ___globalNeonRankingsRequest)
         {
+
+            if (!skip)
+            {
+                NeonLite.Logger.BetaMsg($"OnLBUploaded called: Success status? {(int)pCallback.m_bSuccess} bIOFailure? {bIOFailure} Score changed? {(int)pCallback.m_bScoreChanged}");
+                NeonLite.Logger.BetaMsg($"Are we global? {___globalNeonRankingsRequest} Are we rushing? {LevelRush.IsLevelRush()}");
+            }
+
             const bool DEBUG = false;
 
             if (bIOFailure || (pCallback.m_bSuccess == 0 && !DEBUG) || skip)
@@ -108,7 +115,7 @@ namespace NeonLite.Modules
 
             LBType type = ___globalNeonRankingsRequest ? LBType.Global : (rushtype != null ? LBType.Rush : LBType.Level);
 
-            NeonLite.Logger.DebugMsg(filepath);
+            NeonLite.Logger.BetaMsg($"Outputting to {filepath}. Type? {type}");
 
             var handle = SteamRemoteStorage.FileWriteStreamOpen(filepath);
 
@@ -156,9 +163,11 @@ namespace NeonLite.Modules
                     final.Position = final.Length;
                     file.Seek(0, SeekOrigin.Begin);
                     file.CopyTo(final);
+
                 }
 
                 SteamRemoteStorage.FileWriteStreamWriteChunk(handle, final.GetBuffer(), size);
+                NeonLite.Logger.BetaMsg($"Wrote file {filename}, size {file.Length} to UGC.");
 
                 count++;
             }

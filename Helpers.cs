@@ -333,6 +333,18 @@ namespace NeonLite
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static void DebugMsg(this MelonLogger.Instance log, object obj) => DebugMsg(log, obj.ToString());
 
+        [Conditional("BETA"), Conditional("DEBUG")]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void BetaMsg(this MelonLogger.Instance log, string msg)
+        {
+            log.Msg(msg);
+            UnityEngine.Debug.Log($"[NeonLite] {msg}");
+        }
+
+        [Conditional("BETA"), Conditional("DEBUG")]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void BetaMsg(this MelonLogger.Instance log, object obj) => DebugMsg(log, obj.ToString());
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T GetValue<T>(this FieldInfo fieldInfo, object instance) => (T)fieldInfo.GetValue(instance);
     }

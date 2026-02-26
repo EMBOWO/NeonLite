@@ -50,6 +50,9 @@ namespace NeonLite.Modules.Verification
 
         static void ResetTimes()
         {
+            if (!LoadManager.currentLevel || LoadManager.currentLevel.type == LevelData.LevelType.Hub)
+                return;
+
             paused = false;
             running = true;
         }

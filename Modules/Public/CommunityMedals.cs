@@ -126,7 +126,6 @@ namespace NeonLite.Modules
 #endif
             leaderboardSaphPlus = Settings.Add(Settings.h, "Medals", "leadeerboardSaphPlus", "Show Saph+ on Leaderboard", "Show medals higher than Sapphire on leaderboards", true);
             overrideURL = Settings.Add(Settings.h, "Medals", "overrideURL", "Extension URL", "Specifies additional community medals JSON URL to apply on top of the existing community medals.", "");
-            showExtendedGlobal = Settings.Add(Settings.h, "Medals", "showExtendedGlobal", "Show Extended Medals on Global", "Show other people's extended medals on the global leaderboard, even if you don't have them yourself.", false);
             topazColor = Settings.Add(Settings.h, "Medals", "topazColor", "Topaz Color", "Color for Topaz times.", new Color32(249, 87, 0, 255));
             bdColor = Settings.Add(Settings.h, "Medals", "bdColor", "Blood Diamond Color", "Color for Blood Diamond times.", new Color32(187, 10, 30, 255));
             topazImagePath = Settings.Add(Settings.h, "Medals", "topazImagePath", "Custom Topaz Medal Image", "Set a custom topaz medal image by entering the path to a local image.\nMake sure to remove quotes!", "");

@@ -397,7 +397,7 @@ namespace NeonLite.Modules.Misc
         const bool priority = true;
         static bool active = true;
 
-        const bool force = true;
+        const bool force = false;
         static readonly TimeSpan range = TimeSpan.FromHours(12);
         static System.Random randist;
 

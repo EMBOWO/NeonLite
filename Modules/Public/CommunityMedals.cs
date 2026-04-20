@@ -46,11 +46,31 @@ namespace NeonLite.Modules
             new(0.976f, 0.341f, 0f), // TOPAZ COLOR
             new(1.0f, 0.333f, 0.988f) // BLOOD DIAMOND COLOR
         ];
+        public enum MedalImageEnum
+        {
+            MedalEm,
+            MedalAm,
+            MedalSph,
+            MikeyEm,
+            MikeyAm,
+            MikeySph,
+            CrystEm,
+            CrystAm,
+            CrystSph,
+            MedalTp,
+            MedalBd,
+            MikeyTp,
+            MikeyBd,
+            CrystTp,
+            CrystBd,
 
-        private static Sprite[] imageCache = new Sprite[15];
-        private static Sprite[] existingCache = new Sprite[15];
+            Count
+        }
+
+        private static Sprite[] imageCache = new Sprite[(int)MedalImageEnum.Count];
+        private static Sprite[] existingCache = new Sprite[(int)MedalImageEnum.Count];
         private static Dictionary<string, Sprite> embeddedImages = new Dictionary<string, Sprite>();
-        private static string[] pastPaths = new string[15];
+        private static string[] pastPaths = new string[(int)MedalImageEnum.Count];
 
         public enum MedalEnum
         {
@@ -70,25 +90,6 @@ namespace NeonLite.Modules
         static MedalEnum E(int i) => (MedalEnum)i;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static int I(MedalEnum e) => (int)e;
-
-        public enum MedalImageEnum
-        {
-            MedalEm,
-            MedalAm,
-            MedalSph,
-            MikeyEm,
-            MikeyAm,
-            MikeySph,
-            CrystEm,
-            CrystAm,
-            CrystSph,
-            MedalTp,
-            MedalBd,
-            MikeyTp,
-            MikeyBd,
-            CrystTp,
-            CrystBd
-        }
 
         static bool assetReadyUnderlying;
         public static bool Ready
@@ -349,7 +350,7 @@ namespace NeonLite.Modules
             Colors[8] = topazColor.Value;
             Colors[9] = bdColor.Value;
 
-            for (int i = 9; i < 15; i++)
+            for (int i = 9; i < (int)MedalImageEnum.Count; i++)
             {
                 if (existingCache[i] == null)
                     return;

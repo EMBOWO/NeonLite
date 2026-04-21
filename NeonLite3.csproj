@@ -91,10 +91,13 @@
     </ItemGroup>
 
 	<ItemGroup>
+		<EmbeddedResource Include="Assets\Sprites\CrystalRecord.png" />
 		<EmbeddedResource Include="Assets\Sprites\CrystalBlud.png" />
 		<EmbeddedResource Include="Assets\Sprites\CrystalTopaz.png" />
+		<EmbeddedResource Include="Assets\Sprites\MedalRecord.png" />
 		<EmbeddedResource Include="Assets\Sprites\MedalBlud.png" />
 		<EmbeddedResource Include="Assets\Sprites\MedalTopaz.png" />
+		<EmbeddedResource Include="Assets\Sprites\MikeyRecord.png" />
 		<EmbeddedResource Include="Assets\Sprites\MikeyBlud.png" />
 		<EmbeddedResource Include="Assets\Sprites\MikeyTopaz.png" />
 	</ItemGroup>

@@ -119,6 +119,7 @@ namespace NeonLite.Modules
         internal static MelonPreferences_Entry<bool> leaderboardSaphPlus;
         internal static MelonPreferences_Entry<bool> customStandardMedals;
         internal static MelonPreferences_Entry<bool> worldRecordMedals;
+
         public static MelonPreferences_Entry<float> hueShift;
         internal static MelonPreferences_Entry<string> overrideURL;
         internal static MelonPreferences_Entry<Color32> emeraldColor;
@@ -170,6 +171,7 @@ namespace NeonLite.Modules
 #endif
             leaderboardSaphPlus = Settings.Add(Settings.h, "Medals", "leaderboardSaphPlus", "Show Saph+ on Leaderboard", "Show medals higher than Sapphire on leaderboards.", false);
             customStandardMedals = Settings.Add(Settings.h, "Medals", "customStandardMedals", "Custom Standard Medal Images", "Use custom images for emerald, amethyst, and sapphire medals. Reload level to take effect.", false);
+            worldRecordMedals = Settings.Add(Settings.h, "Medals", "worldRecordMedals", "World Record Medals", "Turn on a separate medal for world records.", true);
 
             pastCustomStandardMedals = customStandardMedals.Value;
 
@@ -279,7 +281,10 @@ namespace NeonLite.Modules
             for (int i = times.Length - 1; i >= 0; i--)
             {
                 if (time <= times[i])
-                    return i;
+                {
+                    int index = worldRecordMedals.Value ? i : Math.Min(i, 9);
+                    return index;
+                }
             }
             return 0;
         }

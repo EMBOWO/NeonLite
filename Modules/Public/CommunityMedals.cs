@@ -118,6 +118,7 @@ namespace NeonLite.Modules
         internal static MelonPreferences_Entry<bool> hideLeaderboard;
         internal static MelonPreferences_Entry<bool> leaderboardSaphPlus;
         internal static MelonPreferences_Entry<bool> customStandardMedals;
+        internal static MelonPreferences_Entry<bool> worldRecordMedals;
         public static MelonPreferences_Entry<float> hueShift;
         internal static MelonPreferences_Entry<string> overrideURL;
         internal static MelonPreferences_Entry<Color32> emeraldColor;

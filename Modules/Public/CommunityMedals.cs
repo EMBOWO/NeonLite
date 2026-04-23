@@ -884,7 +884,7 @@ namespace NeonLite.Modules
             __instance._levelCompleteMedalImage.sprite = Medals[modded];
             AdjustMaterial(__instance._levelCompleteMedalImage);
 
-            if (!(medalEarned == 4 || (medalEarned == 0 && previousMedal == 4) || levelStats.IsNewBest()) || modded == GetMedalIndex(level.levelID, lastBest))
+            if (!(medalEarned == 4 || (medalEarned == 0 && previousMedal == 4) || levelStats.IsNewBest()) || (modded == GetMedalIndex(level.levelID, lastBest) && modded != 10))
                 return;
             if (oldInsightLevel == 4)
             {

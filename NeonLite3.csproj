@@ -55,6 +55,11 @@
         <DefineConstants Condition="'$(Configuration)'=='Debug'">$(DefineConstants);ENABLE_PROFILER;</DefineConstants>
         <DefineConstants Condition="$(NWVersion.Contains('-b'))">$(DefineConstants);BETA;</DefineConstants>
     </PropertyGroup>
+    <ItemGroup>
+      <Compile Remove="Assets\**" />
+      <EmbeddedResource Remove="Assets\**" />
+      <None Remove="Assets\**" />
+    </ItemGroup>
 
     <ItemGroup>
         <!-- Add further references by using $(NWManaged) and $(NWDirectory): -->
@@ -80,17 +85,9 @@
         <Reference Include="$(NWDirectory)/MelonLoader/net35/Tomlet.dll" Private="false" />
     </ItemGroup>
 
-	<ItemGroup>
-		<EmbeddedResource Include="Assets\Sprites\CrystalRecord.png" />
-		<EmbeddedResource Include="Assets\Sprites\CrystalBlud.png" />
-		<EmbeddedResource Include="Assets\Sprites\CrystalTopaz.png" />
-		<EmbeddedResource Include="Assets\Sprites\MedalRecord.png" />
-		<EmbeddedResource Include="Assets\Sprites\MedalBlud.png" />
-		<EmbeddedResource Include="Assets\Sprites\MedalTopaz.png" />
-		<EmbeddedResource Include="Assets\Sprites\MikeyRecord.png" />
-		<EmbeddedResource Include="Assets\Sprites\MikeyBlud.png" />
-		<EmbeddedResource Include="Assets\Sprites\MikeyTopaz.png" />
-	</ItemGroup>
-
 	<Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
+
+	<ItemGroup>
+	  <_GlobalJsonStartingDir Remove="Assets\**" />
+	</ItemGroup>
 </Project>

@@ -152,7 +152,7 @@ namespace NeonLite.Modules
             pastRecordMedals = recordMedals.Value;
             pastRecordHidden = recordHidden.Value;
 
-            overrideURL = Settings.Add(Settings.h, "Medals", "overrideURL", "Extension URL", "Specifies additional community medals JSON URL to apply on top of the existing community medals.", "");
+            overrideURL = Settings.Add(Settings.h, "Medals", "overrideURL", "Extension URL", "Specifies additional community medals JSON URL to apply on top of the existing community medals. Restart game to customize images.", "");
 
             SetupVariableSettings();
 

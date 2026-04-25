@@ -194,13 +194,11 @@ namespace NeonLite.Modules
                 foreach (var pk in variant)
                 {
                     var level = NeonLite.Game.GetGameData().GetLevelData(pk.Key);
-                    if (level == null)
-                        continue;
 
                     List<long> community = [.. pk.Value as ProxyArray];
                     List<long> initial = [];
 
-                    if (!level.isSidequest)
+                    if (level || !level.isSidequest)
                     {
                         initial = [
                             long.MaxValue,
@@ -314,6 +312,7 @@ namespace NeonLite.Modules
                             SetTex();
                     });
 
+                    NeonLite.Logger.DebugMsg($"add ext {rank}");
                     extensions.Add(rank, data);
                     ++index;
                 }
@@ -388,6 +387,8 @@ namespace NeonLite.Modules
 
         static void FinalizeExtensions()
         {
+            NeonLite.Logger.DebugMsg($"finalize extensions exts? {extensions.Count} current {_medalDatas.Count}");
+
             var exts = extensions
                     .OrderBy(kv => kv.Key)
                     .Select(kv => kv.Value)
@@ -410,6 +411,8 @@ namespace NeonLite.Modules
 
                 _medalDatas.Add(ext);
             }
+
+            NeonLite.Logger.DebugMsg($"post finalize exts? {extensions.Count} current {_medalDatas.Count}");
         }
 
         public static int GetMedalIndex(string level, long time = -1)
@@ -441,12 +444,19 @@ namespace NeonLite.Modules
             OnLevelLoad(null);
         }
 
+        static bool fetching = false;
         static void DownloadMedals()
         {
+            if (fetching)
+                return;
+            NeonLite.Logger.DebugMsg($"DownloadMedals exts? {extensions.Count} medaldatas? {_medalDatas.Count}");
             fetched = true;
             extensions.Clear();
             if (_medalDatas.Count > I(MedalEnum.Plus)) // remove all exts
                 _medalDatas.RemoveRange(I(MedalEnum.Plus), _medalDatas.Count - I(MedalEnum.Plus));
+            NeonLite.Logger.DebugMsg($"postclear {_medalDatas.Count}");
+
+            fetching = true;
             Helpers.DownloadURL(URL, request =>
             {
                 string backup = Path.Combine(Helpers.GetSaveDirectory(), "NeonLite", filename);
@@ -474,6 +484,8 @@ namespace NeonLite.Modules
                             var split = next.Split(['\n'], 2);
                             var url = split[0].Trim();
 
+                            NeonLite.Logger.DebugMsg($"ext fetch {url}");
+
                             Helpers.DownloadURL(url, request =>
                             {
                                 var load = request.result == UnityEngine.Networking.UnityWebRequest.Result.Success && LoadExtension(request.downloadHandler.text);
@@ -495,6 +507,8 @@ namespace NeonLite.Modules
                     else
                         NeonLite.Logger.Msg("Fetched community medals!");
                 }
+
+                fetching = false;
             });
         }
 

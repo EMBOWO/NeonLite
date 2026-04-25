@@ -116,7 +116,7 @@ namespace NeonLite
         {
             if (bundleLoading != null)
                 return;
-            bundleLoading = AssetBundle.LoadFromMemoryAsync(Resources.r.bundle);
+            bundleLoading = AssetBundle.LoadFromStreamAsync(Resources.neonlite.GetStream());
             bundleLoading.completed += static _ =>
             {
                 Logger.Msg("AssetBundle loading done!");
@@ -129,11 +129,12 @@ namespace NeonLite
         {
             ActivatePriority();
             LoadAssetBundle();
-            Game.OnInitializationComplete += OnInitComplete;
+            if (!FastStart.active)
+                Game.OnInitializationComplete += OnInitComplete;
             Settings.Localize();
         }
 
-        void OnInitComplete()
+        internal void OnInitComplete()
         {
             // mainmenu is now ready!
             Game.OnInitializationComplete -= OnInitComplete;
@@ -173,7 +174,8 @@ namespace NeonLite
             Helpers.EndProfiling();
 
             activateLate = true;
-            Patching.RunPatches(true);
+            // patching these in parallel would VERY rarely cause weird issues
+            Patching.RunPatches(false);
 
             Settings.Migrate();
 

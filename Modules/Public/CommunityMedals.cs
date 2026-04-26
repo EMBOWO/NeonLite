@@ -1,9 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using HarmonyLib;
-using I2.Loc;
 using MelonLoader;
 using MelonLoader.TinyJSON;
 using NeonLite.Modules.UI;
@@ -245,7 +243,16 @@ namespace NeonLite.Modules
                         FetchNext(split[1]);
                 });
             }
-            FetchNext(overrideURL.Value);
+            if (!(overrideURL.Value == ""))
+            {
+                FetchNext(overrideURL.Value);
+            } else
+            {
+                colors.Add(new Color32(255, 85, 252, 255));
+                names.Add("Record");
+                AddVariableSettings();
+                NeonLite.Logger.Msg("Finished preloading extended community medals!");
+            }
 
             void AddVariableSettings()
             {
@@ -430,7 +437,9 @@ namespace NeonLite.Modules
         static void LoadRecords()
         {
             NeonLite.Logger.DebugMsg("Loading Records...");
-            int rank = extensions
+
+            int rank = extensions.Count == 0 ? 1000 :
+                extensions
                     .OrderBy(kv => kv.Key)
                     .Select(kv => kv.Value)
                     .ToArray()[extensions.Count - 1].rank + 100;
@@ -520,6 +529,13 @@ namespace NeonLite.Modules
 
                 _medalDatas.Add(ext);
             }
+
+            if (!Ready)
+                return;
+
+            pastPaths = new string[3 * (_medalDatas.Count - I(MedalEnum.Emerald))];
+            imageCache = new Sprite[3 * (_medalDatas.Count - I(MedalEnum.Emerald))];
+
         }
 
         public static int GetMedalIndex(string level, long time = -1)
@@ -597,8 +613,8 @@ namespace NeonLite.Modules
                                 if (split.Length <= 1)
                                 {
                                     LoadRecords();
-                                    NeonLite.Logger.Msg("Finished loading extended community medals!");
                                     FinalizeExtensions();
+                                    NeonLite.Logger.Msg("Finished loading extended community medals!");
                                 }
                                 else
                                     FetchNext(split[1]);
@@ -607,7 +623,11 @@ namespace NeonLite.Modules
                         FetchNext(overrideURL.Value);
                     }
                     else
+                    {
+                        LoadRecords();
+                        FinalizeExtensions();
                         NeonLite.Logger.Msg("Fetched community medals!");
+                    }
                 }
 
                 fetching = false;
@@ -895,6 +915,9 @@ namespace NeonLite.Modules
 
             Ready = true;
             AssetsFinished?.Invoke();
+
+            pastPaths = new string[3 * (_medalDatas.Count - I(MedalEnum.Emerald))];
+            imageCache = new Sprite[3 * (_medalDatas.Count - I(MedalEnum.Emerald))];
         }
 
         static readonly MethodInfo styleTime = Helpers.Method(typeof(LevelInfo), "StyleMedalTime");
@@ -960,6 +983,10 @@ namespace NeonLite.Modules
                     communityTimes[communityTimes.Length - 1] = wrTime;
 
                     string path = Path.Combine(Helpers.GetSaveDirectory(), "NeonLite", "records.json");
+                    if (!File.Exists(path))
+                    {
+                        File.WriteAllText(path, Resources.records.GetUTF8String());
+                    }
                     string js = File.ReadAllText(path);
                     var jsonObj = JSON.Load(js) as ProxyObject;
                     jsonObj[level.levelID] = new ProxyNumber(wrTime);

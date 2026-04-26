@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using HarmonyLib;
 using MelonLoader;
@@ -114,10 +115,10 @@ namespace NeonLite.Modules
 
         public static MelonPreferences_Entry<float> hueShift;
         internal static MelonPreferences_Entry<string> overrideURL;
-        internal static List<MelonPreferences_Entry<Color>> medalColors = new List<MelonPreferences_Entry<Color>>();
-        internal static List<MelonPreferences_Entry<string>> medalImagePaths = new List<MelonPreferences_Entry<string>>();
-        internal static List<MelonPreferences_Entry<string>> stampImagePaths = new List<MelonPreferences_Entry<string>>();
-        internal static List<MelonPreferences_Entry<string>> crystalImagePaths = new List<MelonPreferences_Entry<string>>();
+        internal static Dictionary<int, MelonPreferences_Entry<string>> medalImagePaths = new();
+        internal static Dictionary<int, MelonPreferences_Entry<string>> stampImagePaths = new();
+        internal static Dictionary<int, MelonPreferences_Entry<string>> crystalImagePaths = new();
+        internal static Dictionary<int, MelonPreferences_Entry<Color>> medalColors = new();
 
 #if !XBOX
         internal static MelonPreferences_Entry<bool> uploadGlobal;
@@ -186,9 +187,18 @@ namespace NeonLite.Modules
                 new(0.674f, 0.313f, 0.913f),
                 new(0.043f, 0.317f, 0.901f)
             ];
+            List<int> ranks = [
+                0,
+                10,
+                20,
+                30,
+                40,
+                50,
+                60,
+                70
+            ];
             bool PreLoad(List<Color> cs, List<string> ns, string js)
             {
-                List<int> ranks = new List<int>();
                 try
                 {
                     var variant = JSON.Load(js) as ProxyObject;
@@ -205,6 +215,7 @@ namespace NeonLite.Modules
                             continue;
                         }
                         ColorUtility.TryParseHtmlString(medal["color"], out var color);
+                        ranks.Add(rank); 
                         colors.Add(color);
                         names.Add($"{medal["rank"]}");
                         NeonLite.Logger.DebugMsg("Added " + color + " and " + $"{medal["rank"]}");
@@ -219,6 +230,7 @@ namespace NeonLite.Modules
                 }
                 return true;
             }
+
             void FetchNext(string next)
             {
                 var split = next.Split(['\n'], 2);
@@ -236,6 +248,7 @@ namespace NeonLite.Modules
                     {
                         colors.Add(new Color32(255, 85, 252, 255));
                         names.Add("Record");
+                        ranks.Add(ranks.Max() + 100);
                         AddVariableSettings();
                         NeonLite.Logger.Msg("Finished preloading extended community medals!");
                     }
@@ -250,45 +263,41 @@ namespace NeonLite.Modules
             {
                 colors.Add(new Color32(255, 85, 252, 255));
                 names.Add("Record");
+                ranks.Add(ranks.Max() + 100);
                 AddVariableSettings();
                 NeonLite.Logger.Msg("Finished preloading extended community medals!");
             }
 
             void AddVariableSettings()
             {
-                NeonLite.Logger.DebugMsg("Updating Variable Settings, names ");
-                foreach (var name in names)
-                {
-                    NeonLite.Logger.DebugMsg(name);
-                }
                 for (int i = I(MedalEnum.Emerald); i < colors.Count; i++)
                 {
-                    if (i < medalColors.Count + I(MedalEnum.Emerald)) continue;
                     Color c = colors[i];
                     string name = names[i];
+                    int rank = ranks[i];
                     NeonLite.Logger.DebugMsg("Adding " + name + " color");
-                    medalColors.Add(Settings.Add(Settings.h, "Medals", $"{name}Color", $"{name} Color", $"Color for {name} times.", c));
+                    medalColors.Add(rank, Settings.Add(Settings.h, "Medals", $"{name}Color", $"{name} Color", $"Color for {name} times.", c));
                 }
 
                 for (int i = I(MedalEnum.Emerald); i < names.Count; i++)
                 {
-                    if (i < medalImagePaths.Count + I(MedalEnum.Emerald)) continue;
                     string name = names[i];
-                    medalImagePaths.Add(Settings.Add(Settings.h, "Medals", $"{name}MedalImagePath", $"Custom {name} Medal Image", $"Set a custom {name} medal image by entering the path to a local image. Reload level to take effect.", ""));
+                    int rank = ranks[i];
+                    medalImagePaths.Add(rank, Settings.Add(Settings.h, "Medals", $"{name}MedalImagePath", $"Custom {name} Medal Image", $"Set a custom {name} medal image by entering the path to a local image. Reload level to take effect.", ""));
                 }
 
                 for (int i = I(MedalEnum.Emerald); i < names.Count; i++)
                 {
-                    if (i < stampImagePaths.Count + I(MedalEnum.Emerald)) continue;
                     string name = names[i];
-                    stampImagePaths.Add(Settings.Add(Settings.h, "Medals", $"{name}StampImagePath", $"Custom {name} Stamp Image", $"Set a custom {name} stamp image by entering the path to a local image. Reload level to take effect.", ""));
+                    int rank = ranks[i];
+                    stampImagePaths.Add(rank, Settings.Add(Settings.h, "Medals", $"{name}StampImagePath", $"Custom {name} Stamp Image", $"Set a custom {name} stamp image by entering the path to a local image. Reload level to take effect.", ""));
                 }
 
                 for (int i = I(MedalEnum.Emerald); i < names.Count; i++)
                 {
-                    if (i < crystalImagePaths.Count + I(MedalEnum.Emerald)) continue;
                     string name = names[i];
-                    crystalImagePaths.Add(Settings.Add(Settings.h, "Medals", $"{name}CrystalImagePath", $"Custom {name} Crystal Image", $"Set a custom {name} crystal image by entering the path to a local image. Reload level to take effect.", ""));
+                    int rank = ranks[i];
+                    crystalImagePaths.Add(rank, Settings.Add(Settings.h, "Medals", $"{name}CrystalImagePath", $"Custom {name} Crystal Image", $"Set a custom {name} crystal image by entering the path to a local image. Reload level to take effect.", ""));
                 }
             }
         }
@@ -389,36 +398,45 @@ namespace NeonLite.Modules
                         data.times.Add(pk.Key, value);
                     }
 
-                    Helpers.DownloadURL(medal["medali"], res =>
+                    if (medalImagePaths[rank].Value == "" || !File.Exists(medalImagePaths[rank].Value))
                     {
-                        if (res.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
-                            return;
-                        void SetTex() => data.sMedal = LoadSpriteData(Medals[0], res.downloadHandler.data);
-                        if (!Ready)
-                            AssetsFinished += SetTex;
-                        else
-                            SetTex();
-                    });
-                    Helpers.DownloadURL(medal["stampi"], res =>
+                        Helpers.DownloadURL(medal["medali"], res =>
+                        {
+                            if (res.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
+                                return;
+                            void SetTex() => data.sMedal = LoadSpriteData(Medals[0], res.downloadHandler.data);
+                            if (!Ready)
+                                AssetsFinished += SetTex;
+                            else
+                                SetTex();
+                        });
+                    }
+                    if (stampImagePaths[rank].Value == "" || !File.Exists(medalImagePaths[rank].Value))
                     {
-                        if (res.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
-                            return;
-                        void SetTex() => data.sStamp = LoadSpriteData(Stamps[I(MedalEnum.Dev)], res.downloadHandler.data);
-                        if (!Ready)
-                            AssetsFinished += SetTex;
-                        else
-                            SetTex();
-                    });
-                    Helpers.DownloadURL(medal["crysti"], res =>
+                        Helpers.DownloadURL(medal["stampi"], res =>
+                        {
+                            if (res.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
+                                return;
+                            void SetTex() => data.sStamp = LoadSpriteData(Stamps[I(MedalEnum.Dev)], res.downloadHandler.data);
+                            if (!Ready)
+                                AssetsFinished += SetTex;
+                            else
+                                SetTex();
+                        });
+                    }
+                    if (crystalImagePaths[rank].Value == "" || !File.Exists(medalImagePaths[rank].Value))
                     {
-                        if (res.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
-                            return;
-                        void SetTex() => data.sCrystal = LoadSpriteData(Crystals[0], res.downloadHandler.data);
-                        if (!Ready)
-                            AssetsFinished += SetTex;
-                        else
-                            SetTex();
-                    });
+                        Helpers.DownloadURL(medal["crysti"], res =>
+                        {
+                            if (res.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
+                                return;
+                            void SetTex() => data.sCrystal = LoadSpriteData(Crystals[0], res.downloadHandler.data);
+                            if (!Ready)
+                                AssetsFinished += SetTex;
+                            else
+                                SetTex();
+                        });
+                    }
 
                     extensions.Add(rank, data);
                     ++index;
@@ -438,17 +456,14 @@ namespace NeonLite.Modules
         {
             NeonLite.Logger.DebugMsg("Loading Records...");
 
-            int rank = extensions.Count == 0 ? 1000 :
-                extensions
-                    .OrderBy(kv => kv.Key)
-                    .Select(kv => kv.Value)
-                    .ToArray()[extensions.Count - 1].rank + 100;
+            int rank = medalColors.Keys.Max();
             var data = new MedalData()
             {
                 color = new Color32(255, 85, 252, 255),
                 popup = "NLEM/RESULTS_MEDAL_WR",
                 hidden = recordMedals.Value ? recordHidden.Value : true,
                 name = "Record",
+                rank = rank,
 
                 times = []
             };
@@ -647,6 +662,7 @@ namespace NeonLite.Modules
                 AssetsDone(NeonLite.bundle);
 
             UpdateMedals(NeonLite.bundle);
+
         }
 
         static void UpdateMedals(AssetBundle bundle)
@@ -665,7 +681,7 @@ namespace NeonLite.Modules
 
             for (int i = I(MedalEnum.Emerald); i < Colors.Length; i++)
             {
-                _medalDatas[i].color = medalColors[i - I(MedalEnum.Emerald)].Value;
+                _medalDatas[i].color = medalColors[_medalDatas[i].rank].Value;
             }
 
             if (!Ready || existingCache[0] == null || pastPaths == null)
@@ -745,11 +761,11 @@ namespace NeonLite.Modules
 
             string[] customPaths = new string[3 * (_medalDatas.Count - I(MedalEnum.Emerald))];
             int ind = 0;
-            for (int i = 0; i < _medalDatas.Count - I(MedalEnum.Emerald); i++)
+            for (int i = I(MedalEnum.Emerald); i < _medalDatas.Count; i++)
             {
-                customPaths[ind++] = medalImagePaths[i].Value;
-                customPaths[ind++] = stampImagePaths[i].Value;
-                customPaths[ind++] = crystalImagePaths[i].Value;
+                customPaths[ind++] = medalImagePaths[_medalDatas[i].rank].Value;
+                customPaths[ind++] = stampImagePaths[_medalDatas[i].rank].Value;
+                customPaths[ind++] = crystalImagePaths[_medalDatas[i].rank].Value;
             }
 
             if (!customStandardMedals.Value && id < 9) return bundle.LoadAsset<Sprite>(paths[id]);

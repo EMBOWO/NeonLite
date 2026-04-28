@@ -214,7 +214,7 @@ namespace NeonLite.Modules
                             continue;
                         }
                         ColorUtility.TryParseHtmlString(medal["color"], out var color);
-                        ranks.Add(rank); 
+                        ranks.Add(rank);
                         colors.Add(color);
                         names.Add($"{medal["rank"]}");
                         NeonLite.Logger.DebugMsg("Added " + color + " and " + $"{medal["rank"]}");
@@ -687,25 +687,47 @@ namespace NeonLite.Modules
             if (!Ready || existingCache[0] == null || pastPaths == null)
                 return;
 
+            string[] paths =
+            {
+                "Assets/Sprites/MedalEmerald.png",
+                "Assets/Sprites/MikeyEmerald.png",
+                "Assets/Sprites/CrystalEmerald.png",
+                "Assets/Sprites/MedalAmethyst.png",
+                "Assets/Sprites/MikeyAmethyst.png",
+                "Assets/Sprites/CrystalAmethyst.png",
+                "Assets/Sprites/MedalSapphire.png",
+                "Assets/Sprites/MikeySapphire.png",
+                "Assets/Sprites/CrystalSapphire.png",
+            };
+
+            string[] customPaths = new string[3 * (_medalDatas.Count - I(MedalEnum.Emerald))];
+            int ind = 0;
+            for (int i = I(MedalEnum.Emerald); i < _medalDatas.Count; i++)
+            {
+                customPaths[ind++] = medalImagePaths[_medalDatas[i].rank].Value;
+                customPaths[ind++] = stampImagePaths[_medalDatas[i].rank].Value;
+                customPaths[ind++] = crystalImagePaths[_medalDatas[i].rank].Value;
+            }
+
             if (customStandardMedals.Value || !customStandardMedals.Value && pastCustomStandardMedals)
             {
-                _medalDatas[5].sMedal = LoadSprite(0, 0, null, bundle);
-                _medalDatas[5].sStamp = LoadSprite(0, 1, null, bundle);
-                _medalDatas[5].sCrystal = LoadSprite(0, 2, null, bundle);
-                _medalDatas[6].sMedal = LoadSprite(1, 0, null, bundle);
-                _medalDatas[6].sStamp = LoadSprite(1, 1, null, bundle);
-                _medalDatas[6].sCrystal = LoadSprite(1, 2, null, bundle);
-                _medalDatas[7].sMedal = LoadSprite(2, 0, null, bundle);
-                _medalDatas[7].sStamp = LoadSprite(2, 1, null, bundle);
-                _medalDatas[7].sCrystal = LoadSprite(2, 2, null, bundle);
+                _medalDatas[5].sMedal = LoadSprite(0, 0, paths, customPaths, null, bundle);
+                _medalDatas[5].sStamp = LoadSprite(0, 1, paths, customPaths, null, bundle);
+                _medalDatas[5].sCrystal = LoadSprite(0, 2, paths, customPaths, null, bundle);
+                _medalDatas[6].sMedal = LoadSprite(1, 0, paths, customPaths, null, bundle);
+                _medalDatas[6].sStamp = LoadSprite(1, 1, paths, customPaths, null, bundle);
+                _medalDatas[6].sCrystal = LoadSprite(1, 2, paths, customPaths, null, bundle);
+                _medalDatas[7].sMedal = LoadSprite(2, 0, paths, customPaths, null, bundle);
+                _medalDatas[7].sStamp = LoadSprite(2, 1, paths, customPaths, null, bundle);
+                _medalDatas[7].sCrystal = LoadSprite(2, 2, paths, customPaths, null, bundle);
                 pastCustomStandardMedals = customStandardMedals.Value;
             }
 
             for (int i = 8; i < _medalDatas.Count; i++)
             {
-                _medalDatas[i].sMedal = LoadSprite(i - I(MedalEnum.Emerald), 0, existingCache[0], null);
-                _medalDatas[i].sStamp = LoadSprite(i - I(MedalEnum.Emerald), 1, existingCache[1], null);
-                _medalDatas[i].sCrystal = LoadSprite(i - I(MedalEnum.Emerald), 2, existingCache[2], null);
+                _medalDatas[i].sMedal = LoadSprite(i - I(MedalEnum.Emerald), 0, paths, customPaths, existingCache[0], null);
+                _medalDatas[i].sStamp = LoadSprite(i - I(MedalEnum.Emerald), 1, paths, customPaths, existingCache[1], null);
+                _medalDatas[i].sCrystal = LoadSprite(i - I(MedalEnum.Emerald), 2, paths, customPaths, existingCache[2], null);
             }
         }
 
@@ -742,33 +764,11 @@ namespace NeonLite.Modules
                 graphic.material = HueShiftMat;
         }
 
-        private static Sprite LoadSprite(int medalNum, int type, Sprite existing, AssetBundle bundle)
+        private static Sprite LoadSprite(int medalNum, int type, string[] paths, string[] customPaths, Sprite existing, AssetBundle bundle)
         {
-            NeonLite.Logger.DebugMsg("Loading medal " + medalNum + " type " + type);
             int id = medalNum * 3 + type;
-            string[] paths =
-            {
-                "Assets/Sprites/MedalEmerald.png",
-                "Assets/Sprites/MikeyEmerald.png",
-                "Assets/Sprites/CrystalEmerald.png",
-                "Assets/Sprites/MedalAmethyst.png",
-                "Assets/Sprites/MikeyAmethyst.png",
-                "Assets/Sprites/CrystalAmethyst.png",
-                "Assets/Sprites/MedalSapphire.png",
-                "Assets/Sprites/MikeySapphire.png",
-                "Assets/Sprites/CrystalSapphire.png",
-            };
 
-            string[] customPaths = new string[3 * (_medalDatas.Count - I(MedalEnum.Emerald))];
-            int ind = 0;
-            for (int i = I(MedalEnum.Emerald); i < _medalDatas.Count; i++)
-            {
-                customPaths[ind++] = medalImagePaths[_medalDatas[i].rank].Value;
-                customPaths[ind++] = stampImagePaths[_medalDatas[i].rank].Value;
-                customPaths[ind++] = crystalImagePaths[_medalDatas[i].rank].Value;
-            }
-
-            if (!customStandardMedals.Value && id < 9) return bundle.LoadAsset<Sprite>(paths[id]);
+            if (id < 9 && (!customStandardMedals.Value || customPaths[id] == "" || !File.Exists(customPaths[id]))) return bundle.LoadAsset<Sprite>(paths[id]);
 
             if (customPaths[id] == "" || !File.Exists(customPaths[id]))
             {

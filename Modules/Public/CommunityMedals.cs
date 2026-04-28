@@ -314,7 +314,7 @@ namespace NeonLite.Modules
                     List<long> community = [.. pk.Value as ProxyArray];
                     List<long> initial = [];
 
-                    if (level || !level.isSidequest)
+                    if (level && !level.isSidequest)
                     {
                         initial = [
                             long.MaxValue,
@@ -554,12 +554,13 @@ namespace NeonLite.Modules
 
         public static int GetMedalIndex(string level, long time = -1)
         {
-            var stats = GameDataManager.GetLevelStats(level);
-            if (!stats.GetCompleted())
-                return -1;
-
             if (time == -1)
+            {
+                var stats = GameDataManager.GetLevelStats(level);
+                if (!stats.GetCompleted())
+                    return -1;
                 time = stats._timeBestMicroseconds;
+            }
 
             var times = medalTimes[level];
             var cap = Math.Min(times.Length, _medalDatas.Count);
@@ -1051,9 +1052,9 @@ namespace NeonLite.Modules
 
                 if (level.isSidequest)
                 {
-                    if (medalEarned < I(MedalEnum.Dev))
+                    if (medalEarned < I(MedalEnum.Ace))
                         return; // we can't show rolling for sidequests
-                    if (medalEarned == I(MedalEnum.Dev)) // start at emmy anyway, we have no dex
+                    if (medalEarned == I(MedalEnum.Ace)) // start at emmy anyway, we have no dex
                         startingMedal = I(MedalEnum.Emerald);
                 }
             }
@@ -1207,10 +1208,12 @@ namespace NeonLite.Modules
             AdjustMaterial(__instance._medal);
 
             int userMedal = GetMedalIndex(levelData.levelID); // medal the user has on this level
+            userMedal = Math.Max(userMedal, I(MedalEnum.Ace)); // ensure the medal to be displayed is only as high as the user's, but only as low as ace
+
             if (hideLeaderboard.Value && medalEarned >= I(MedalEnum.Dev))
             {
                 if (medalEarned > userMedal)
-                    medalEarned = Math.Max(userMedal, I(MedalEnum.Ace)); // ensure the medal to be displayed is only as high as the user's, but only as low as ace
+                    medalEarned = userMedal;
             }
 
             var cap = medalTimes[levelData.levelID].Length;

@@ -69,7 +69,7 @@ namespace NeonLite.Modules
         }
 
         private static Sprite[] existingCache = new Sprite[3];
-        private static Sprite[] imageCache;
+        private static Dictionary<(int, int), Sprite> origImages = new();
         private static string[] pastPaths;
 
         private static List<string> wrUpdated = new List<string>();
@@ -397,45 +397,55 @@ namespace NeonLite.Modules
                         data.times.Add(pk.Key, value);
                     }
 
-                    if (medalImagePaths[rank].Value == "" || !File.Exists(medalImagePaths[rank].Value))
+                    bool changeTex = medalImagePaths[rank].Value == "" || !File.Exists(medalImagePaths[rank].Value);
+                    Helpers.DownloadURL(medal["medali"], res =>
                     {
-                        Helpers.DownloadURL(medal["medali"], res =>
+                        if (res.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
+                            return;
+                        void SetTex()
                         {
-                            if (res.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
-                                return;
-                            void SetTex() => data.sMedal = LoadSpriteData(Medals[0], res.downloadHandler.data);
-                            if (!Ready)
-                                AssetsFinished += SetTex;
-                            else
-                                SetTex();
-                        });
-                    }
-                    if (stampImagePaths[rank].Value == "" || !File.Exists(medalImagePaths[rank].Value))
+                            Sprite s = LoadSpriteData(Medals[0], res.downloadHandler.data);
+                            origImages[(rank, 0)] = s;
+                            if (changeTex)
+                                data.sMedal = s;
+                        }
+                        if (!Ready)
+                            AssetsFinished += SetTex;
+                        else
+                            SetTex();
+                    });
+                    Helpers.DownloadURL(medal["stampi"], res =>
                     {
-                        Helpers.DownloadURL(medal["stampi"], res =>
+                        if (res.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
+                            return;
+                        void SetTex()
                         {
-                            if (res.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
-                                return;
-                            void SetTex() => data.sStamp = LoadSpriteData(Stamps[I(MedalEnum.Dev)], res.downloadHandler.data);
-                            if (!Ready)
-                                AssetsFinished += SetTex;
-                            else
-                                SetTex();
-                        });
-                    }
-                    if (crystalImagePaths[rank].Value == "" || !File.Exists(medalImagePaths[rank].Value))
+                            Sprite s = LoadSpriteData(Stamps[I(MedalEnum.Dev)], res.downloadHandler.data);
+                            origImages[(rank, 1)] = s;
+                            if (changeTex)
+                                data.sStamp = s;
+                        }
+                        if (!Ready)
+                            AssetsFinished += SetTex;
+                        else
+                            SetTex();
+                    });
+                    Helpers.DownloadURL(medal["crysti"], res =>
                     {
-                        Helpers.DownloadURL(medal["crysti"], res =>
+                        if (res.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
+                            return;
+                        void SetTex()
                         {
-                            if (res.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
-                                return;
-                            void SetTex() => data.sCrystal = LoadSpriteData(Crystals[0], res.downloadHandler.data);
-                            if (!Ready)
-                                AssetsFinished += SetTex;
-                            else
-                                SetTex();
-                        });
-                    }
+                            Sprite s = LoadSpriteData(Crystals[0], res.downloadHandler.data);
+                            origImages[(rank, 2)] = s;
+                            if (changeTex)
+                                data.sCrystal = s;
+                        }
+                        if (!Ready)
+                            AssetsFinished += SetTex;
+                        else
+                            SetTex();
+                    });
 
                     extensions.Add(rank, data);
                     ++index;
@@ -481,19 +491,38 @@ namespace NeonLite.Modules
                     data.times.Add(pk, variant[pk].ToInt64(null));
             }
 
-            void SetTexMedal() => data.sMedal = LoadSpriteData(Medals[0], Resources.MedalRecord.GetBytes());
+            bool changeTex = medalImagePaths[rank].Value == "" || !File.Exists(medalImagePaths[rank].Value);
+            void SetTexMedal()
+            {
+                Sprite s = LoadSpriteData(Medals[0], Resources.MedalRecord.GetBytes());
+                origImages[(rank, 0)] = s;
+                if (changeTex)
+                    data.sMedal = s;
+            }
             if (!Ready)
                 AssetsFinished += SetTexMedal;
             else
                 SetTexMedal();
 
-            void SetTexStamp() => data.sStamp = LoadSpriteData(Stamps[I(MedalEnum.Dev)], Resources.MikeyRecord.GetBytes());
+            void SetTexStamp()
+            {
+                Sprite s = LoadSpriteData(Stamps[I(MedalEnum.Dev)], Resources.MikeyRecord.GetBytes());
+                origImages[(rank, 1)] = s;
+                if (changeTex)
+                    data.sStamp = s;
+            }
             if (!Ready)
                 AssetsFinished += SetTexStamp;
             else
                 SetTexStamp();
 
-            void SetTexCrystal() => data.sCrystal = LoadSpriteData(Crystals[0], Resources.CrystalRecord.GetBytes());
+            void SetTexCrystal()
+            {
+                Sprite s = LoadSpriteData(Medals[0], Resources.CrystalRecord.GetBytes());
+                origImages[(rank, 2)] = s;
+                if (changeTex)
+                    data.sCrystal = s;
+            }
             if (!Ready)
                 AssetsFinished += SetTexCrystal;
             else
@@ -548,7 +577,6 @@ namespace NeonLite.Modules
                 return;
 
             pastPaths = new string[3 * (_medalDatas.Count - I(MedalEnum.Emerald))];
-            imageCache = new Sprite[3 * (_medalDatas.Count - I(MedalEnum.Emerald))];
 
         }
 
@@ -667,6 +695,9 @@ namespace NeonLite.Modules
 
         static void UpdateMedals(AssetBundle bundle)
         {
+            if (_medalDatas.Count == 0)
+                return;
+
             if (recordHidden.Value != pastRecordHidden)
             {
                 _medalDatas[_medalDatas.Count - 1].hidden = recordHidden.Value;
@@ -766,21 +797,27 @@ namespace NeonLite.Modules
 
         private static Sprite LoadSprite(int medalNum, int type, string[] paths, string[] customPaths, Sprite existing, AssetBundle bundle)
         {
+            NeonLite.Logger.DebugMsg("Loading medal " + medalNum + " type " + type);
             int id = medalNum * 3 + type;
 
-            if (id < 9 && (!customStandardMedals.Value || customPaths[id] == "" || !File.Exists(customPaths[id]))) return bundle.LoadAsset<Sprite>(paths[id]);
+            if (id < 9 && (!customStandardMedals.Value || customPaths[id] == "" || !File.Exists(customPaths[id])))
+            {
+                pastPaths[id] = customPaths[id];
+                return bundle.LoadAsset<Sprite>(paths[id]); 
+            }
 
             if (customPaths[id] == "" || !File.Exists(customPaths[id]))
             {
-                switch (id % 3)
-                {
-                    case 0:
-                        return _medalDatas[id / 3 + I(MedalEnum.Emerald)].sMedal;
-                    case 1:
-                        return _medalDatas[id / 3 + I(MedalEnum.Emerald)].sStamp;
-                    case 2:
-                        return _medalDatas[id / 3 + I(MedalEnum.Emerald)].sCrystal;
-                }
+                pastPaths[id] = customPaths[id];
+                if (origImages.ContainsKey((_medalDatas[id / 3 + I(MedalEnum.Emerald)].rank, id % 3)))
+                    return origImages[(_medalDatas[id / 3 + I(MedalEnum.Emerald)].rank, id % 3)];
+                else
+                    return (id % 3) switch
+                    {
+                        0 => _medalDatas[id / 3 + I(MedalEnum.Emerald)].sMedal,
+                        1 => _medalDatas[id / 3 + I(MedalEnum.Emerald)].sStamp,
+                        2 => _medalDatas[id / 3 + I(MedalEnum.Emerald)].sCrystal
+                    };
             }
 
             if (pastPaths[id] == null || customPaths[id] != pastPaths[id])
@@ -796,16 +833,16 @@ namespace NeonLite.Modules
                     new Vector2(0.5f, 0.5f)
                 );
 
-                if (imageCache[id] != null)
-                {
-                    UnityEngine.Object.Destroy(imageCache[id].texture);
-                    UnityEngine.Object.Destroy(imageCache[id]);
-                }
-
-                imageCache[id] = sprite;
                 pastPaths[id] = customPaths[id];
+
+                return sprite;
             }
-            return imageCache[id];
+            return (id % 3) switch
+            {
+                0 => _medalDatas[id / 3 + I(MedalEnum.Emerald)].sMedal,
+                1 => _medalDatas[id / 3 + I(MedalEnum.Emerald)].sStamp,
+                2 => _medalDatas[id / 3 + I(MedalEnum.Emerald)].sCrystal
+            };
         }
 
         static void AssetsDone(AssetBundle bundle)
@@ -933,7 +970,6 @@ namespace NeonLite.Modules
             AssetsFinished?.Invoke();
 
             pastPaths = new string[3 * (_medalDatas.Count - I(MedalEnum.Emerald))];
-            imageCache = new Sprite[3 * (_medalDatas.Count - I(MedalEnum.Emerald))];
         }
 
         static readonly MethodInfo styleTime = Helpers.Method(typeof(LevelInfo), "StyleMedalTime");

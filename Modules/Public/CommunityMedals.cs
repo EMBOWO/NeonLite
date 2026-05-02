@@ -1166,8 +1166,15 @@ namespace NeonLite.Modules
                 (style.Value == DisplayStyle.Rolling && medalEarned > lastVis))
             {
                 __instance.devStamp.SetActive(true);
-                __instance.devTime.SetText(medalEarned != _medalDatas.Count - 1 ? Helpers.FormatTime(communityTimes[medalEarned] / 1000, medalEarned != I(MedalEnum.Dev) || ShowMS.extended.Value, '.', true) : "WORLD RECORD");
-                __instance.devTime.color = AdjustedColor(Colors[medalEarned]);
+                if (medalEarned < communityTimes.Length)
+                {
+                    __instance.devTime.SetText("Loading...");
+                }
+                else
+                {
+                    __instance.devTime.SetText(medalEarned != _medalDatas.Count - 1 ? Helpers.FormatTime(communityTimes[medalEarned] / 1000, medalEarned != I(MedalEnum.Dev) || ShowMS.extended.Value, '.', true) : "WORLD RECORD");
+                    __instance.devTime.color = AdjustedColor(Colors[medalEarned]);
+                }
 
                 if (medalEarned + 1 < cap && !_medalDatas[medalEarned + 1].hidden)
                 {

@@ -44,6 +44,7 @@ namespace NeonLite
         internal static bool activateLate;
 
         internal static Localization.LocaleCategory LC;
+        internal static Localization.LocaleCategory LCEM;
 
         public override void OnEarlyInitializeMelon()
         {
@@ -79,7 +80,9 @@ namespace NeonLite
             }
 
             const string URL = "https://raw.githubusercontent.com/Faustas156/NeonLite/main/Resources/locale.csv";
+            const string URLEM = "https://raw.githubusercontent.com/EMBOWO/NeonLite/main/Resources/localeEM.csv";
             LC = Localization.GetLocale_Stream("NeonLite", Localization.Reader_CSVStream, Resources.locale.GetStream(), URL);
+            LCEM = Localization.GetLocale_Stream("NeonLite", Localization.Reader_CSVStream, Resources.locale.GetStream(), URL);
         }
 
         internal static void ActivatePriority()

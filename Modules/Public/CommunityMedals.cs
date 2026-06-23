@@ -199,7 +199,7 @@ namespace NeonLite.Modules
             ];
             bool PreLoad(List<Color> cs, List<string> ns, string js)
             {
-                NeonLite.Logger.Msg("COMMUNITY MEDALS EXT MOD v1.2.1+1");
+                NeonLite.Logger.Msg("COMMUNITY MEDALS EXT MOD v1.3.0");
                 try
                 {
                     var variant = JSON.Load(js) as ProxyObject;
@@ -1309,8 +1309,9 @@ namespace NeonLite.Modules
                 return;
 
             string locKey = _medalDatas[modded].popup;
+            if (locKey.StartsWith("NLEM/")) locKey = locKey.Substring(5);
 
-            __instance._levelCompleteMedalText_Localized.SetKey(locKey);
+            __instance._levelCompleteMedalText_Localized.SetKey(LCEM.Term(locKey));
 
             ____medalEarned = 4;
         }

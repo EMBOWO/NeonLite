@@ -61,8 +61,8 @@ namespace NeonLite.Modules.Misc
 
             // sq logic
             bool showing = level && CommunityMedals.Ready && medalTimes.ContainsKey(level.levelID);
-            if (CommunityMedals.style.Value == DisplayStyle.Stamps)
-                showing &= GetMedalIndex(level.levelID) >= I(MedalEnum.Emerald);
+            if (showing && CommunityMedals.style.Value == DisplayStyle.Stamps && GetMedalIndex(level.levelID) < I(MedalEnum.Emerald))
+                showing = false;
 
             Image[] dotteds = __instance._insightAniamtor.GetComponentsInChildren<Image>();
             dotteds[0].enabled = !active || !level.isSidequest || (stats.GetCompleted() && CommunityMedals.setting.Value && showing);

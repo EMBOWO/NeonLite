@@ -175,6 +175,66 @@ namespace NeonLite
             return field;
         }
 
+        public static bool CheckModActive(bool checkSettings, params string[] mods)
+        {
+            foreach (var mn in mods)
+            {
+                var mod = NeonLite.RegisteredMelons.FirstOrDefault(x => x.Info.Name == mn);
+                if (mod == null)
+                    return false;
+
+                if (checkSettings)
+                {
+                    string h = mn;
+                    MelonPreferences_Entry<bool> enaV;
+                    // can we find a settings class?
+                    var setting = mod.MelonAssembly.Assembly.GetTypes()
+                        .FirstOrDefault(t => t.Name.Equals("Settings", StringComparison.OrdinalIgnoreCase));
+                    if (setting == null)
+                        goto HolderCheck;
+
+                    // does this class have "enabled" or "enable"
+                    var enabled = setting.GetFields(AccessTools.all)
+                        .FirstOrDefault(f =>
+                            f.Name.Equals("enabled", StringComparison.OrdinalIgnoreCase) ||
+                            f.Name.Equals("enable", StringComparison.OrdinalIgnoreCase));
+                    if (enabled != null)
+                    {
+                        try
+                        {
+                            enaV = (MelonPreferences_Entry<bool>)enabled.GetValue(null);
+                            if (enaV != null)
+                                goto EnaVCheck;
+                        }
+                        catch { };
+                    }
+
+                    // check for h
+                    var hF = setting.GetField("h", AccessTools.all);
+                    if (hF != null)
+                        h = (string)hF.GetValue(null);
+
+                HolderCheck: // labels were the best way i can think of this im so sorry
+                    if (!Settings.catHolders.TryGetValue(h, out var catH))
+                        continue; // couldn't find, assuming enabled
+
+                    if (!catH.TryGetValue("", out var cat))
+                        continue;
+
+                    enaV = cat.GetEntry<bool>("enabled");
+                    enaV ??= cat.GetEntry<bool>("enable");
+                    if (enaV == null)
+                        continue;
+
+                EnaVCheck:
+                    if (!enaV.Value)
+                        return false;
+                }
+            }
+
+            return true;
+        }
+
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MethodInfo MoveNext(this MethodInfo method) => AccessTools.EnumeratorMoveNext(method);

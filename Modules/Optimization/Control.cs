@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using HarmonyLib;
+using MelonLoader;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -120,39 +121,27 @@ namespace NeonLite.Modules.Optimization
     }
 
     [Module]
-    class AltTabFix : MonoBehaviour
+    static class AltTabFix
     {
         const bool priority = false;
-        static bool active = true;
+        const bool active = true;
 
-        static AltTabFix i;
+        static MelonPreferences_Entry<InputSettings.BackgroundBehavior> setting;
 
         static void Setup()
         {
-            var setting = Settings.Add(Settings.h, "Misc", "alttab", "Alt-tab Fix", "Resets button presses, etc. after alt-tabbing to prevent \"sticky keys.\"", true);
-            active = setting.SetupForModule(Activate, static (_, after) => after);
+            setting = Settings.Add(Settings.h, "Misc", "alttab2", "Inactive Behavior",
+                """
+                How to handle background input and alt-tab "sticky keys."
+
+                IgnoreFocus - Default behavior, doesn't unstick keys on alt-tab
+                ResetAndDisableAllDevices - Unsticks keyboard, no background input
+                ResetAndDisableNonBackgroundDevices - Unsticks keyboard, controller has background input
+                """, InputSettings.BackgroundBehavior.ResetAndDisableAllDevices);
+
+            setting.SetupForModule(Activate, static (_, _) => true);
         }
 
-        static void Activate(bool activate)
-        {
-            if (!i)
-                i = NeonLite.holder.AddComponent<AltTabFix>();
-
-            i.enabled = activate;
-            active = activate;
-        }
-
-        void OnApplicationFocus(bool hasFocus)
-        {
-            if (hasFocus)
-            {
-                if (Keyboard.current != null)
-                    InputSystem.ResetDevice(Keyboard.current);
-                if (Mouse.current != null)
-                    InputSystem.ResetDevice(Mouse.current);
-                if (Gamepad.current != null)
-                    InputSystem.ResetDevice(Gamepad.current);
-            }
-        }
+        static void Activate(bool _) => InputSystem.settings.backgroundBehavior = setting.Value;
     }
 }

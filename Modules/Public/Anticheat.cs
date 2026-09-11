@@ -8,9 +8,6 @@ using NeonLite.Modules.UI.Status;
 using UnityEngine;
 using Newtonsoft.Json;
 
-
-
-
 #if XBOX
 using System.Threading.Tasks;
 using TFBGames;
@@ -167,7 +164,6 @@ namespace NeonLite.Modules
         static readonly List<(MelonAssembly, string)> ghostNames = [];
         internal static bool fetchingGhost = false;
 
-
         static void GetGhostPath(GhostType ghostType, ref string filePath)
         {
             if (!fetchingGhost)
@@ -209,6 +205,8 @@ namespace NeonLite.Modules
                 if (__0.Contains(t))
                     return true;
             }
+            if (!__0.Contains("savedata"))
+                return true;
             __result = Task.CompletedTask;
             return false;
         }
@@ -279,7 +277,7 @@ namespace NeonLite.Modules
                 .Advance(1)
                 .Insert(
                     new CodeInstruction(OpCodes.Dup), // duplicate the path
-                    Transpilers.EmitDelegate<Func<string, bool>>(static x => x.EndsWith(".phant") || x.EndsWith(".phant.mod")), // check if we end with phant
+                    Transpilers.EmitDelegate(static (string x) => x.EndsWith(".phant") || x.EndsWith(".phant.mod")), // check if we end with phant
                     new CodeInstruction(OpCodes.Brtrue, after)) // if we do, branch forward
                 .MatchBack(true, new CodeMatch(x => x.IsStloc() && x.opcode.Name.EndsWith(ldlocN))) // go back to the *other* matching stloc
                 .Advance(1)
@@ -290,6 +288,7 @@ namespace NeonLite.Modules
                 .InstructionEnumeration();
         }
 
+        static bool forceSave;
         static bool NoSaveGame(string name)
         {
             if (saveRedir != null)
@@ -298,7 +297,12 @@ namespace NeonLite.Modules
                 if (name.Contains(p))
                     return true;
             }
-            return false;
+            if (!name.Contains("savedata"))
+                return true;
+
+            var force = forceSave;
+            forceSave = false;
+            return force;
         }
         static bool NoSaveGhostCompressed()
         {
@@ -371,6 +375,28 @@ namespace NeonLite.Modules
         {
             if (string.IsNullOrWhiteSpace(path))
                 return;
+#if !XBOX
+            if (string.IsNullOrWhiteSpace(saveRedir))
+            {
+                // do a backup rq in a Special place
+                var backups = Path.Combine(Helpers.GetSaveDirectory(), "NeonLite", "SaveRedirBaks");
+
+                if (Directory.Exists(backups))
+                {
+                    foreach (FileInfo item in (from i in Directory.EnumerateFiles(backups)
+                                               select new FileInfo(i) into i
+                                               orderby i.LastWriteTime descending
+                                               select i).Skip(19))
+                        item.Delete();
+                }
+                var fn = "backup" + DateTime.Now.ToString("yyyyMMddTHHmmss") + "_savedata.dat";
+
+                File.Copy(
+                    Path.Combine(Helpers.GetSaveDirectory(), "savedata.dat"),
+                    Path.Combine(backups, fn)
+                );
+            }
+#endif
 
             saveRedir = path;
             allowNewGame = newGameAllowed;
@@ -408,29 +434,42 @@ namespace NeonLite.Modules
 #if !XBOX
         static bool BackupSaveRedir()
         {
-            if (saveRedir == null)
-                return true;
+            // NeonLite.Logger.DebugMsg($"DoBackup {GameDataManager.saveData == null} {doCustomBackup} {saveRedir}");
 
-            var backups = Path.Combine(saveRedir, "Backups");
-            if (Directory.Exists(backups))
+            if (GameDataManager.saveData == null)
+                return false;
+
+            try
             {
-                foreach (FileInfo item in (from i in Directory.EnumerateFiles(backups)
-                                           select new FileInfo(i) into i
-                                           orderby i.LastWriteTime descending
-                                           select i).Skip(9))
-                    item.Delete();
-            }
-            var fn = "backup" + DateTime.Now.ToString("yyyyMMddTHHmmss") + "_savedata.dat";
+                var backups = Path.Combine(saveRedir ?? "", "Backups");
+                if (saveRedir == null)
+                    return true;
 
-            GameDataManager.saveData.campaignStats = new SerializableDictionary<string, CampaignStats>(GameDataManager.campaignStats);
-            GameDataManager.saveData.levelStats = new SerializableDictionary<string, LevelStats>(GameDataManager.levelStats);
-            GameDataManager.saveData.missionStats = new SerializableDictionary<string, MissionStats>(GameDataManager.missionStats);
-            GameDataManager.saveData.cardShowcase = new SerializableDictionary<string, bool>(GameDataManager.cardShowcase);
-            GameDataManager.saveData.hubVariables = new SerializableDictionary<string, int>(GameDataManager.hubVariables);
-            GameDataManager.saveData.relationships = new SerializableDictionary<string, RelationshipStats>(GameDataManager.relationships);
-            GameDataManager.saveData.freshFile = false;
-            string value = JsonConvert.SerializeObject(GameDataManager.saveData, Formatting.Indented);
-            FileManagement.SetStringWithEncryption(Path.Combine(backups, fn), value);
+                if (Directory.Exists(backups))
+                {
+                    foreach (FileInfo item in (from i in Directory.EnumerateFiles(backups)
+                                               select new FileInfo(i) into i
+                                               orderby i.LastWriteTime descending
+                                               select i).Skip(9))
+                        item.Delete();
+                }
+                var fn = "backup" + DateTime.Now.ToString("yyyyMMddTHHmmss") + "_savedata.dat";
+
+                GameDataManager.saveData.campaignStats = new SerializableDictionary<string, CampaignStats>(GameDataManager.campaignStats);
+                GameDataManager.saveData.levelStats = new SerializableDictionary<string, LevelStats>(GameDataManager.levelStats);
+                GameDataManager.saveData.missionStats = new SerializableDictionary<string, MissionStats>(GameDataManager.missionStats);
+                GameDataManager.saveData.cardShowcase = new SerializableDictionary<string, bool>(GameDataManager.cardShowcase);
+                GameDataManager.saveData.hubVariables = new SerializableDictionary<string, int>(GameDataManager.hubVariables);
+                GameDataManager.saveData.relationships = new SerializableDictionary<string, RelationshipStats>(GameDataManager.relationships);
+                GameDataManager.saveData.freshFile = false;
+                string value = JsonConvert.SerializeObject(GameDataManager.saveData, Formatting.Indented);
+                FileManagement.SetStringWithEncryption(Path.Combine(backups, fn), value);
+            }
+            catch (Exception e)
+            {
+                NeonLite.Logger.Warning("Failed to create backup:");
+                NeonLite.Logger.Error(e);
+            }
 
             return false;
         }

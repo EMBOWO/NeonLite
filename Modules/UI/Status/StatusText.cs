@@ -4,9 +4,9 @@ using UnityEngine;
 namespace NeonLite.Modules.UI.Status
 {
     [Module(200)]
-    internal class StatusText : MonoBehaviour
+    public class StatusText : MonoBehaviour
     {
-        static internal StatusText i;
+        static public StatusText i;
         const bool priority = false;
         const bool active = true;
         static bool tried = false;
@@ -57,7 +57,7 @@ namespace NeonLite.Modules.UI.Status
             public int order;
         }
 
-        internal TextMeshProUGUI MakeText(string name, string text, int order)
+        public TextMeshProUGUI MakeText(string name, string text, int order)
         {
             var textO = Utils.InstantiateUI(baseText.gameObject, name, transform).GetComponent<TextMeshProUGUI>();
             textO.text = text;

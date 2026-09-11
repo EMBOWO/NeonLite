@@ -313,14 +313,9 @@ namespace NeonLite.Modules
 
             public void AddTerm(string term, params TermPair[] pairs)
             {
-                NeonLite.Logger.DebugMsg($"AddTerm {Term(term)} Paircount {pairs.Length}");
-
                 var data = modsSource.AddTerm(Term(term));
                 foreach (var p in pairs)
-                {
-                    NeonLite.Logger.DebugMsg($"- {p.nwLanguage}: {p.translation}");
                     data.SetTranslation(p.IDX, p.translation);
-                }
 
                 RelocalizeTimer.timer = 1f;
             }

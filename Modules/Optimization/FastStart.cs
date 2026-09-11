@@ -183,10 +183,8 @@ namespace NeonLite.Modules.Optimization
             List<AudioController> controllers = [__instance, .. ____additionalAudioControllers];
             foreach (var controller in controllers)
             {
-                NeonLite.Logger.DebugMsg($"AUDIOCONTROLLER {controller.name} {controller.AudioCategories.Length}");
                 foreach (var category in controller.AudioCategories)
                 {
-                    NeonLite.Logger.DebugMsg($"AUDIOCATEGORY {category.Name} {category.AudioObjectPrefab} {category.AudioItems.Length}");
                     category.audioController = controller;
 
                     foreach (var item in category.AudioItems)

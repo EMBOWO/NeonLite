@@ -21,7 +21,7 @@ namespace NeonLite
         static readonly Dictionary<MelonPreferences_Entry, (string, string)> entryLoc = new(256);
         static readonly Dictionary<MelonPreferences_Category, string> catLoc = new(32);
 
-        static readonly Dictionary<string, Dictionary<string, MelonPreferences_Category>> catHolders = new(32);
+        internal static readonly Dictionary<string, Dictionary<string, MelonPreferences_Category>> catHolders = new(32);
 
         internal const string h = "NeonLite";
 

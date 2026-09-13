@@ -389,6 +389,9 @@ namespace NeonLite.Modules
                                                select i).Skip(19))
                         item.Delete();
                 }
+                else
+                    Directory.CreateDirectory(backups);
+
                 var fn = "backup" + DateTime.Now.ToString("yyyyMMddTHHmmss") + "_savedata.dat";
 
                 File.Copy(

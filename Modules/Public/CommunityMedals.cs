@@ -199,7 +199,7 @@ namespace NeonLite.Modules
             ];
             bool PreLoad(List<Color> cs, List<string> ns, string js)
             {
-                NeonLite.Logger.Msg("COMMUNITY MEDALS EXT MOD v1.3.2");
+                NeonLite.Logger.Msg("COMMUNITY MEDALS EXT MOD v1.3.1");
                 try
                 {
                     var variant = JSON.Load(js) as ProxyObject;

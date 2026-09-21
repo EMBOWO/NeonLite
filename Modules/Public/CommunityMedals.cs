@@ -199,7 +199,7 @@ namespace NeonLite.Modules
             ];
             bool PreLoad(List<Color> cs, List<string> ns, string js)
             {
-                NeonLite.Logger.Msg("COMMUNITY MEDALS EXT MOD v1.3.1");
+                NeonLite.Logger.Msg("COMMUNITY MEDALS EXT MOD v1.3.2");
                 try
                 {
                     var variant = JSON.Load(js) as ProxyObject;
@@ -468,6 +468,12 @@ namespace NeonLite.Modules
             NeonLite.Logger.DebugMsg("Loading Records...");
 
             int rank = medalColors.Keys.Max();
+
+            if (extensions.ContainsKey(rank))
+            {
+                NeonLite.Logger.DebugMsg($"Duplicate medal rank {rank} already exists, replacing");
+            }
+
             var data = new MedalData()
             {
                 color = new Color32(255, 85, 252, 255),
@@ -530,7 +536,7 @@ namespace NeonLite.Modules
             else
                 SetTexCrystal();
 
-            extensions.Add(rank, data);
+            extensions[rank] = data;
             NeonLite.Logger.DebugMsg("Finished Loading Records");
         }
 
